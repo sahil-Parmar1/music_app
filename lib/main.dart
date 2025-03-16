@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'provider_classes.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:id3/id3.dart';
 
 void main()async
 {
@@ -88,7 +89,7 @@ class _musicAppState extends State<musicApp> {
     if(songProvider.Songlist.isEmpty)
     {
       print("song list is empty");
-      fetchSongslist();
+      fetchSongslist(context);
     }
     else
     {
@@ -112,7 +113,7 @@ class _musicAppState extends State<musicApp> {
               child: songProvider.Songlist.length>0?ListView.builder(
                   itemCount: songProvider.Songlist.length,
                   itemBuilder: (context,index){
-                    return ListTile(title: Text("${songProvider.Songlist[index]}",style: TextStyle(color: colortheme.theme.getText),),);
+                    return ListTile(title: Text("${songProvider.Songlist[index].path}",style: TextStyle(color: colortheme.theme.getText),),);
                   }):Container(child: Text("song list is empty add one"),),),
             ElevatedButton(onPressed: (){
               Song newsong=Song(path: 'hello');
@@ -175,18 +176,26 @@ Future<List<String>>  getfromShared_preference({required String key})async
 
 //fectching songs
 //fecth the song list
-Future<void> fetchSongslist() async {
-  List<String> newSongs = [];
+Future<void> fetchSongslist(context) async {
   List<String> deviceLocations=await getfromShared_preference(key: "deviceLocations");
-  //deviceLocations=['/storage/emulated/0/Download', '/storage/0000-0000/Download'];
   print("device locations==>>$deviceLocations");
+  final songProvider = Provider.of<Songlistprovider>(context,listen: false);
 
   for (String path in deviceLocations) {
      print("in path==>$path");
      await for (String song in fetchSongs(path))
        {
          print("song ==>$song");
+         Song newsong=await fetchMP3Metadata(song);
+         print(newsong.Image);
+         print(newsong.path);
+         print(newsong.album);
+         print(newsong.artist);
+         print(newsong.title);
+         print(newsong.genre);
+         songProvider.addSong(newsong);
        }
+       print("all song are fecthed....");
   }
 }
 
@@ -217,5 +226,38 @@ Stream<String> getSongs(Directory dir) async* {
   }
 }
 
+//extract the metadata
+Future<Song> fetchMP3Metadata(String filePath) async {
+  File file = File(filePath);
 
+  if (!await file.exists()) {
+    print("File not found: $filePath");
+    Song song=Song(path: '');
+    return song;
+  }
+
+  List<int> mp3Bytes = await file.readAsBytes();
+  MP3Instance mp3Instance = MP3Instance(mp3Bytes);
+
+  if (mp3Instance.parseTagsSync()) {
+    Map<String, dynamic>? metadata=mp3Instance.getMetaTags();
+    //print("metadata==>${mp3Instance.getMetaTags()}");
+    if(metadata!.containsKey("APIC"))
+    {
+      String? base64Image = metadata["APIC"]["base64"];
+
+      //print("base64Image==>${base64Image}");
+
+      Song song=Song(path: filePath,title: metadata?["Title"] ?? "Unknown",artist:metadata?["Artist"] ?? "Unknown", Image: metadata?["APIC"]?["base64"],publisher: metadata?["Publisher"] ?? "Unknown",genre: metadata?["Genre"] ?? "Unknown",album: metadata?["Album"] ?? "Unknown");
+
+      return song;
+    }
+  } else {
+    print("No metadata found in this file.");
+    Song song=Song(path: filePath);
+    return song;
+  }
+  Song song=Song(path: filePath);
+  return song;
+}
 

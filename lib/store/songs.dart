@@ -12,10 +12,19 @@ class Song extends HiveObject
   String path;
   @HiveField(3)
   String? album;
+  @HiveField(4)
+  String? Image;
+  @HiveField(5)
+  String? publisher;
+  @HiveField(6)
+  String? genre;
   Song({
     this.album,
     this.artist,
     this.title,
+    this.Image,
+    this.publisher,
+    this.genre,
     required this.path
   });
 }

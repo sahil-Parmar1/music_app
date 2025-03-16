@@ -22,6 +22,11 @@ class Songlistprovider extends ChangeNotifier
   }
 
   void addSong(Song song) {
+    for(Song oldsong in Songlist)
+      {
+        if(oldsong.path == song.path)
+          return;
+      }
     songBox!.add(song); // Save to Hive
     Songlist = songBox!.values.toList();
     print("new song is added..");// Update list
