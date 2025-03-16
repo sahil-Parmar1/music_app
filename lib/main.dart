@@ -1,122 +1,221 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:music_app_2/store/songs.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
+import 'dart:async';
+import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
+import 'provider_classes.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-void main() {
-  runApp(const MyApp());
+void main()async
+{
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  // Register the adapter before opening the box
+  Hive.registerAdapter(SongAdapter());
+  Box<Song> songBox=await Hive.openBox<Song>('songs');
+  runApp(
+      MultiProvider(providers: [
+        ChangeNotifierProvider(create: (context) =>Themeprovider()),
+        ChangeNotifierProvider(create: (context) =>Songlistprovider(songBox)),
+      ],
+        child: musicApp(),
+      )
+  );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
+class musicApp extends StatefulWidget {
+  const musicApp({super.key});
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
+  State<musicApp> createState() => _musicAppState();
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
+class _musicAppState extends State<musicApp> {
+  var songProvider;
+  var theme;
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+  void initState()
+  {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_){
+      songProvider=Provider.of<Songlistprovider>(context,listen: false);
+      theme=Provider.of<Themeprovider>(context,listen: false);
     });
+    startups();
+  }
+
+  //for device location like emulated\0\ in android
+  Future<void> getDeviceLocation()async
+  {
+    List<String> storageDirs = [];
+    List<Directory> directories = [];
+
+    if (Platform.isAndroid) {
+      Directory? internalStorage = await getExternalStorageDirectory();
+      if (internalStorage != null) directories.add(internalStorage);
+
+      List<Directory>? externalStorage = await getExternalStorageDirectories();
+      if (externalStorage != null) directories.addAll(externalStorage);
+    } else if (Platform.isIOS) {
+      directories.add(await getApplicationDocumentsDirectory());
+    }
+
+    Set<String> uniquePaths = {};
+    for (Directory dir in directories) {
+      String fullPath = dir.path;
+      if (fullPath.startsWith("/storage/emulated/0")) {
+        uniquePaths.add("/storage/emulated/0");
+      } else {
+        RegExp regex = RegExp(r"^(/storage/[^/]+)");
+        Match? match = regex.firstMatch(fullPath);
+        if (match != null) uniquePaths.add(match.group(1)!);
+      }
+    }
+    savetoShared_preference(string: uniquePaths.toList(), key: "deviceLocations");
+  }
+  void startups()async
+  {
+    List<String> deviceLocations=await getfromShared_preference(key: "deviceLocations");
+    if(deviceLocations.isEmpty)
+    {
+      await requestPermission();
+      await getDeviceLocation();
+    }
+
+    if(songProvider.Songlist.isEmpty)
+    {
+      print("song list is empty");
+      fetchSongslist();
+    }
+    else
+    {
+      print("${songProvider.Songlist}");
+    }
+
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+    final songProvider = Provider.of<Songlistprovider>(context);
+    final colortheme=Provider.of<Themeprovider>(context);
+    return MaterialApp(
+      home: Scaffold(
+        backgroundColor: colortheme.theme.getBackground,
+        body: Center(child: Column(
+          children: [
+
+            Container(
+              height: 300,
+              child: songProvider.Songlist.length>0?ListView.builder(
+                  itemCount: songProvider.Songlist.length,
+                  itemBuilder: (context,index){
+                    return ListTile(title: Text("${songProvider.Songlist[index]}",style: TextStyle(color: colortheme.theme.getText),),);
+                  }):Container(child: Text("song list is empty add one"),),),
+            ElevatedButton(onPressed: (){
+              Song newsong=Song(path: 'hello');
+              songProvider.addSong(newsong);
+            }, child: Text("add"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colortheme.theme.getTab
             ),
+            ),
+            ElevatedButton(onPressed: (){
+              colortheme.settheme('darkblue');
+            }, child: Text("change theme"),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: colortheme.theme.getTab
+              ),
+            )
           ],
-        ),
+        )),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
+
+
+Future<void> requestPermission() async {
+  if (Platform.isAndroid) {
+    if (await Permission.storage.isDenied || await Permission.storage.isPermanentlyDenied) {
+      await Permission.storage.request();
+    }
+
+    if (await Permission.manageExternalStorage.isDenied ||
+        await Permission.manageExternalStorage.isPermanentlyDenied) {
+      await Permission.manageExternalStorage.request();
+    }
+  }
+}
+
+
+//save the list in shared_pref
+void savetoShared_preference({required List<String> string,required String key})async
+{
+  SharedPreferences prefs=await SharedPreferences.getInstance();
+  await prefs.setStringList(key, string);
+}
+
+
+//save the string in shared_pref
+void savetoStringShared_preference({required String string,required String key})async
+{
+  SharedPreferences prefs=await SharedPreferences.getInstance();
+  await prefs.setString(key, string);
+}
+
+//get the list from shared_pref
+Future<List<String>>  getfromShared_preference({required String key})async
+{
+  SharedPreferences prefs=await SharedPreferences.getInstance();
+  return prefs.getStringList(key)??[];
+}
+
+//fectching songs
+//fecth the song list
+Future<void> fetchSongslist() async {
+  List<String> newSongs = [];
+  List<String> deviceLocations=await getfromShared_preference(key: "deviceLocations");
+  //deviceLocations=['/storage/emulated/0/Download', '/storage/0000-0000/Download'];
+  print("device locations==>>$deviceLocations");
+
+  for (String path in deviceLocations) {
+     print("in path==>$path");
+     await for (String song in fetchSongs(path))
+       {
+         print("song ==>$song");
+       }
+  }
+}
+
+Stream<String> fetchSongs(String path) async* {
+  Directory directory = Directory(path);
+  yield* getSongs(directory);
+}
+
+/// Recursively find songs in directories
+Stream<String> getSongs(Directory dir) async* {
+  try {
+    await for (var entity in dir.list(recursive: false, followLinks: false)) {
+      if(entity is File)
+        {
+          print("entity is file $entity");
+        }
+      if (entity is Directory) {
+        print("in entity :$entity");
+        print("enity path ${entity.path}");
+        yield* getSongs(entity);
+      } else if (entity is File && entity.path.endsWith('.mp3')) {
+        print("else entity : $entity");
+        yield entity.path;
+      }
+    }
+  } catch (e) {
+    print("Skipping inaccessible directory: ${dir.path}, Error: $e");
+  }
+}
+
+
+
