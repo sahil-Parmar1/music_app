@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'provider_classes.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:id3/id3.dart';
+import 'screens/homescreen.dart';
 
 void main()async
 {
@@ -100,39 +101,9 @@ class _musicAppState extends State<musicApp> {
 
   @override
   Widget build(BuildContext context) {
-    final songProvider = Provider.of<Songlistprovider>(context);
-    final colortheme=Provider.of<Themeprovider>(context);
-    return MaterialApp(
-      home: Scaffold(
-        backgroundColor: colortheme.theme.getBackground,
-        body: Center(child: Column(
-          children: [
 
-            Container(
-              height: 300,
-              child: songProvider.Songlist.length>0?ListView.builder(
-                  itemCount: songProvider.Songlist.length,
-                  itemBuilder: (context,index){
-                    return ListTile(title: Text("${songProvider.Songlist[index].path}",style: TextStyle(color: colortheme.theme.getText),),);
-                  }):Container(child: Text("song list is empty add one"),),),
-            ElevatedButton(onPressed: (){
-              Song newsong=Song(path: 'hello');
-              songProvider.addSong(newsong);
-            }, child: Text("add"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: colortheme.theme.getTab
-            ),
-            ),
-            ElevatedButton(onPressed: (){
-              colortheme.settheme('darkblue');
-            }, child: Text("change theme"),
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: colortheme.theme.getTab
-              ),
-            )
-          ],
-        )),
-      ),
+    return MaterialApp(
+      home: HomeScreen()
     );
   }
 }
@@ -152,7 +123,7 @@ Future<void> requestPermission() async {
 }
 
 
-//save the list in shared_pref
+///save the list in shared_pref
 void savetoShared_preference({required List<String> string,required String key})async
 {
   SharedPreferences prefs=await SharedPreferences.getInstance();
@@ -160,22 +131,22 @@ void savetoShared_preference({required List<String> string,required String key})
 }
 
 
-//save the string in shared_pref
+///save the string in shared_pref
 void savetoStringShared_preference({required String string,required String key})async
 {
   SharedPreferences prefs=await SharedPreferences.getInstance();
   await prefs.setString(key, string);
 }
 
-//get the list from shared_pref
+///get the list from shared_pref
 Future<List<String>>  getfromShared_preference({required String key})async
 {
   SharedPreferences prefs=await SharedPreferences.getInstance();
   return prefs.getStringList(key)??[];
 }
 
-//fectching songs
-//fecth the song list
+
+///fecth the song list
 Future<void> fetchSongslist(context) async {
   List<String> deviceLocations=await getfromShared_preference(key: "deviceLocations");
   print("device locations==>>$deviceLocations");
@@ -199,6 +170,7 @@ Future<void> fetchSongslist(context) async {
   }
 }
 
+///fectching songs
 Stream<String> fetchSongs(String path) async* {
   Directory directory = Directory(path);
   yield* getSongs(directory);
@@ -226,7 +198,7 @@ Stream<String> getSongs(Directory dir) async* {
   }
 }
 
-//extract the metadata
+///extract the metadata
 Future<Song> fetchMP3Metadata(String filePath) async {
   File file = File(filePath);
 
