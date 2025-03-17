@@ -11,6 +11,7 @@ import 'provider_classes.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:id3/id3.dart';
 import 'screens/homescreen.dart';
+import 'package:path/path.dart' as pathforextract;
 
 void main()async
 {
@@ -160,6 +161,11 @@ Future<void> fetchSongslist(context) async {
          Song newsong=await fetchMP3Metadata(song);
          print(newsong.Image);
          print(newsong.path);
+         if(newsong.title == null)
+           {
+             newsong.title=pathforextract.basename(newsong.path);
+           }
+
          print(newsong.album);
          print(newsong.artist);
          print(newsong.title);

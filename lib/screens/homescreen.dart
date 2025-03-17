@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:music_app_2/main.dart';
+import 'package:music_app_2/screens/songscreen.dart';
 import 'package:provider/provider.dart';
 import 'package:music_app_2/provider_classes.dart';
 import 'package:cupertino_icons/cupertino_icons.dart';
@@ -18,7 +19,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final songProvider = Provider.of<Songlistprovider>(context);
+
     final colortheme=Provider.of<Themeprovider>(context);
     return Scaffold(
       backgroundColor: colortheme.theme.background,
@@ -38,8 +39,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       children: [
                         ClipOval(
-                          child: Image.network(
-                            'https://th.bing.com/th/id/OIP.AotjEfWpHSZoqpMhu2uvDQAAAA?rs=1&pid=ImgDetMain',
+                          child: Image.asset(
+                           //'https://th.bing.com/th/id/OIP.AotjEfWpHSZoqpMhu2uvDQAAAA?rs=1&pid=ImgDetMain',
+                           'assets/music-player.png',
                             width: 30, // Slightly smaller
                             height: 30,
                             fit: BoxFit.cover,
@@ -53,7 +55,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             style: TextStyle(
                               color: colortheme.theme.text,
                               fontSize: 20, // Slightly reduced
-                              fontFamily: 'Signery',
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -102,7 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 2.0),
                             child: GestureDetector(
                               onTap: (){
-                                _pageController.animateToPage(index, duration: Duration(milliseconds: 700), curve: Curves.easeInOut);
+                                _pageController.animateToPage(index, duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
                                 _currentPage=index;
                                   },
                               child: Container(
@@ -111,7 +112,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   borderRadius: BorderRadius.circular(25),
                                   color:  _currentPage==index?colortheme.theme.tab:colortheme.theme.background,
                                 ),
-                                child:Text("${pages[index]}",style: TextStyle(fontSize: 16,color: _currentPage==index?Colors.black:colortheme.theme.text,fontFamily: 'Signery'),) ,),
+                                child:Text("${pages[index]}",style: TextStyle(fontSize: 16,color: _currentPage==index?Colors.black:colortheme.theme.text),) ,),
                             ),
                           ),
                         );
@@ -121,39 +122,64 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
 
             ),
-          ], 
+          ],
           body: PageView(
             controller: _pageController,
             onPageChanged: (index){
-              setState(() {
-                _currentPage=index;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                setState(() {
+                  _currentPage=index;
+                }); // ✅ Delays the state update
               });
             },
             children: [
-              SongScreen(),
+             SongScreen(),
               Playlist(),
               Album(),
             ],
           ),
       ),
+      bottomNavigationBar: BottomAppBar(
+        height: 100,
+        color: Colors.transparent,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.yellow,
+            borderRadius: BorderRadius.circular(20)
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.asset('assets/default-music.png',
+                   height: 60,
+                    width: 60,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                Text("Deva Deva ",style: TextStyle(color: Colors.white,fontSize: 25),),
+                Row(
+                  children: [
+                    IconButton(onPressed: (){}, icon: Icon(CupertinoIcons.play_arrow_solid)),
+                    IconButton(onPressed: (){}, icon: Icon(CupertinoIcons.forward_fill)),
+                  ],
+                ),
+
+              ],
+            ),
+          )
+        )
+      ),
+
     );
   }
 }
 
 
-class SongScreen extends StatefulWidget {
-  const SongScreen({super.key});
 
-  @override
-  State<SongScreen> createState() => _SongState();
-}
-
-class _SongState extends State<SongScreen> {
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text("Song",style: TextStyle(color: Colors.white),),);
-  }
-}
 class Playlist extends StatefulWidget {
   const Playlist({super.key});
 
