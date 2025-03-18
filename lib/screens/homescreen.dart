@@ -21,6 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
 
     final colortheme=Provider.of<Themeprovider>(context);
+    final currentplayprovider=Provider.of<currentplay>(context);
     return Scaffold(
       backgroundColor: colortheme.theme.background,
       body: NestedScrollView(
@@ -89,7 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
               pinned: true,
               toolbarHeight: 5.0,
               flexibleSpace: FlexibleSpaceBar(
-                titlePadding: EdgeInsets.only(left: 10,bottom: 2,top: 0),
+                titlePadding: EdgeInsets.only(left: 10,bottom: 5,top: 0),
                 title:SizedBox(
                   height: 45,
                   child: ListView.builder(
@@ -139,40 +140,63 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
       ),
-      bottomNavigationBar: BottomAppBar(
+      bottomNavigationBar: currentplayprovider.song.path!=''?BottomAppBar(
         height: 100,
         color: Colors.transparent,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.yellow,
-            borderRadius: BorderRadius.circular(20)
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.asset('assets/default-music.png',
-                   height: 60,
-                    width: 60,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Text("Deva Deva ",style: TextStyle(color: Colors.white,fontSize: 25),),
-                Row(
+        child: GestureDetector(
+          onTap: (){
+            print("tapped...");
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => PlayerScreen()),
+            );
+          },
+          child: Hero(
+            tag: 'player',
+            child: Container(
+              decoration: BoxDecoration(
+                color: currentplayprovider.Theme.background,
+                borderRadius: BorderRadius.circular(20)
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    IconButton(onPressed: (){}, icon: Icon(CupertinoIcons.play_arrow_solid)),
-                    IconButton(onPressed: (){}, icon: Icon(CupertinoIcons.forward_fill)),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: buildSongImage(base64Image:currentplayprovider.song.Image)
+                    ),
+                    SizedBox(width: 5,),
+                    Expanded(child: Text("${currentplayprovider.song.title}",style:TextStyle(color: currentplayprovider.Theme.text,fontSize: 18),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,)),
+                    Row(
+                      children: [
+                        IconButton(onPressed: (){
+                          currentplayprovider.prevsong();
+                        }, icon: Icon(CupertinoIcons.backward_fill,color: currentplayprovider.Theme.tab,)),
+                        IconButton(onPressed: (){
+                          if(currentplayprovider.isplaying)
+                          currentplayprovider.pause();
+                          else
+                            currentplayprovider.playSong();
+
+                        }, icon: !currentplayprovider.isplaying?
+                        Icon(CupertinoIcons.play_arrow_solid,color: currentplayprovider.Theme.tab,):
+                        Icon(CupertinoIcons.pause_fill,color: currentplayprovider.Theme.tab)),
+
+                        IconButton(onPressed: (){
+                                 currentplayprovider.nextsong();
+                        }, icon: Icon(CupertinoIcons.forward_fill,color: currentplayprovider.Theme.tab)),
+                      ],
+                    ),
+
                   ],
                 ),
-
-              ],
+              )
             ),
-          )
+          ),
         )
-      ),
+      ):SizedBox.shrink(),
 
     );
   }

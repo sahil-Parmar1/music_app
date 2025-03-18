@@ -24,6 +24,7 @@ void main()async
       MultiProvider(providers: [
         ChangeNotifierProvider(create: (context) =>Themeprovider()),
         ChangeNotifierProvider(create: (context) =>Songlistprovider(songBox)),
+        ChangeNotifierProvider(create: (context) =>currentplay(songBox)),
       ],
         child: musicApp(),
       )
@@ -102,7 +103,6 @@ class _musicAppState extends State<musicApp> {
 
   @override
   Widget build(BuildContext context) {
-
     return MaterialApp(
       home: HomeScreen()
     );
