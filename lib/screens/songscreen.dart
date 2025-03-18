@@ -121,102 +121,140 @@ class _PlayerScreenState extends State<PlayerScreen> {
   @override
   Widget build(BuildContext context) {
     final currentplayprovider=Provider.of<currentplay>(context);
-    return  Scaffold(
-      backgroundColor: currentplayprovider.Theme.background,
-      body: Center(
-        child: Hero(
-          tag: 'player',
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
+    return  MaterialApp(
+        home: Scaffold(
+        backgroundColor: currentplayprovider.Theme.background,
+        body: Center(
+          child: Hero(
+            tag: 'player',
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
 
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: AnimatedContainer(
-                    duration: Duration(milliseconds: 400), // Adjust duration for smoother effect
-                    curve: Curves.easeInOut, // Smooth transition curve
-                    width: currentplayprovider.isplaying ? 250 : 220,
-                    height: currentplayprovider.isplaying ? 250 : 220,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: buildSongImage(
-                        base64Image: currentplayprovider.song.Image,
-                        width: double.infinity, // Use full width of AnimatedContainer
-                        height: double.infinity, // Use full height of AnimatedContainer
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: AnimatedContainer(
+                      duration: Duration(milliseconds: 400), // Adjust duration for smoother effect
+                      curve: Curves.easeInOut, // Smooth transition curve
+                      width: currentplayprovider.isplaying ? 250 : 220,
+                      height: currentplayprovider.isplaying ? 250 : 220,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: buildSongImage(
+                          base64Image: currentplayprovider.song.Image,
+                          width: double.infinity, // Use full width of AnimatedContainer
+                          height: double.infinity, // Use full height of AnimatedContainer
+                        ),
                       ),
                     ),
                   ),
-                ),
 
-                Column(
-                  children: [
-                    Text("${currentplayprovider.song.title}",style:TextStyle(color: currentplayprovider.Theme.tab,fontSize: 20),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,),
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Align(
-                        alignment: Alignment.bottomCenter,
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Expanded(child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Text("${currentplayprovider.song.artist??"Unknown"}",style:TextStyle(color: currentplayprovider.Theme.text,fontSize: 15),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,),
-                            )),
-                            IconButton(onPressed: (){}, icon: Icon(CupertinoIcons.heart_fill,color: currentplayprovider.Theme.tab,)),
-                            IconButton(onPressed: (){}, icon: Icon(CupertinoIcons.ellipsis_vertical,color: currentplayprovider.Theme.tab,)),
+                  Column(
+                    children: [
+                      Text("${currentplayprovider.song.title}",style:TextStyle(color: currentplayprovider.Theme.tab,fontSize: 20),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Expanded(child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Text("${currentplayprovider.song.artist??"Unknown"}",style:TextStyle(color: currentplayprovider.Theme.text,fontSize: 15),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,),
+                              )),
+                              IconButton(onPressed: (){}, icon: Icon(CupertinoIcons.heart_fill,color: currentplayprovider.Theme.tab,)),
+                              IconButton(onPressed: (){}, icon: Icon(CupertinoIcons.ellipsis_vertical,color: currentplayprovider.Theme.tab,)),
 
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    )
-                  ],
-                ),
+                      )
+                    ],
+                  ),
 
+                   ValueListenableBuilder<Duration>(
+                       valueListenable: currentplayprovider.positionNotifier,
+                       builder: (context,position,child){
+                         return Padding(
+                           padding: const EdgeInsets.only(right: 15,left: 15),
+                           child: Slider(
+                             min: 0,
+                             max: currentplayprovider.duration?.inSeconds.toDouble()??1,
+                             value: position.inSeconds.toDouble().clamp(0, currentplayprovider.duration?.inSeconds.toDouble()??1),
+                             onChanged: (value){
+                               //play to this poistion
+                               print("${value.runtimeType}");
+                               print("value :$value");
+                               currentplayprovider.seektoposition(value);
+                             },
+                           ),
+                         );
+                       }),
 
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    IconButton(onPressed: (){
-                      currentplayprovider.prevsong();
-                    }, icon: Icon(CupertinoIcons.backward_fill,color: currentplayprovider.Theme.tab,size: 45,)),
-                    AnimatedSwitcher(
-                      duration: Duration(milliseconds: 500), // Smooth transition
-                      transitionBuilder: (Widget child, Animation<double> animation) {
-                        return ScaleTransition(scale: animation, child: child);
+                   ValueListenableBuilder<Duration>(
+                       valueListenable: currentplayprovider.positionNotifier,
+                       builder: (context,position,child){
+                         return Padding(
+                           padding: const EdgeInsets.only(right: 40,left: 40),
+                           child: Row(
+                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                             children: [
+                               Text(formatDuration(position),style: TextStyle(color: currentplayprovider.Theme.text),), // Current Time
+                               Text(formatDuration(currentplayprovider.duration ?? Duration.zero),style: TextStyle(color: currentplayprovider.Theme.text),), // Total Time
+                             ],
+                           ),
+                         );
+                   }),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      IconButton(onPressed: (){
+                        currentplayprovider.prevsong();
+                      }, icon: Icon(CupertinoIcons.backward_fill,color: currentplayprovider.Theme.tab,size: 45,)),
+                      AnimatedSwitcher(
+                        duration: Duration(milliseconds: 500), // Smooth transition
+                        transitionBuilder: (Widget child, Animation<double> animation) {
+                          return ScaleTransition(scale: animation, child: child);
 
-                      },
-                      child: IconButton(
-                        key: ValueKey<bool>(currentplayprovider.isplaying), // Prevents unnecessary rebuilds
-                        onPressed: () {
-                          if (currentplayprovider.isplaying)
-                            currentplayprovider.pause();
-                          else
-                            currentplayprovider.playSong();
                         },
-                        icon: Icon(
-                          currentplayprovider.isplaying
-                              ? CupertinoIcons.pause_fill
-                              : CupertinoIcons.play_arrow_solid,
-                          color: currentplayprovider.Theme.tab,
-                          size: 45,
+                        child: IconButton(
+                          key: ValueKey<bool>(currentplayprovider.isplaying), // Prevents unnecessary rebuilds
+                          onPressed: () {
+                            if (currentplayprovider.isplaying)
+                              currentplayprovider.pause();
+                            else
+                              currentplayprovider.playSong();
+                          },
+                          icon: Icon(
+                            currentplayprovider.isplaying
+                                ? CupertinoIcons.pause_fill
+                                : CupertinoIcons.play_arrow_solid,
+                            color: currentplayprovider.Theme.tab,
+                            size: 45,
+                          ),
                         ),
                       ),
-                    ),
 
-                    IconButton(onPressed: (){
-                      currentplayprovider.nextsong();
-                    }, icon: Icon(CupertinoIcons.forward_fill,color: currentplayprovider.Theme.tab,size: 45,)),
-                  ],
-                ),
+                      IconButton(onPressed: (){
+                        currentplayprovider.nextsong();
+                      }, icon: Icon(CupertinoIcons.forward_fill,color: currentplayprovider.Theme.tab,size: 45,)),
+                    ],
+                  ),
 
-              ],
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
+  }
+  String formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    return "${twoDigits(duration.inMinutes)}:${twoDigits(duration.inSeconds.remainder(60))}";
   }
 }

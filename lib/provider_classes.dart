@@ -88,12 +88,42 @@ class currentplay extends ChangeNotifier
   Box<Song> songBox;
   Song song=Song(path: '');
   ThemeColor Theme=S1();
-  currentplay(this.songBox);
+  final ValueNotifier<Duration> positionNotifier=ValueNotifier(Duration.zero);
+  currentplay(this.songBox)
+  {
+      player.onPositionChanged.listen((Duration newPosition){
+        positionNotifier.value=newPosition;
+        if(duration != null && newPosition.inSeconds >= duration!.inSeconds -2)
+          {
+            print("Song finished, playing next");
+            nextsong();
+          }
+      });
+  }
   final player=AudioPlayer();
   bool isplaying=false;
+  Duration? duration;
+  Duration _currentpositioin=Duration.zero;
+
+  Duration get position => _currentpositioin;
+
   void playSong()async
   {
         await player.play(DeviceFileSource(song.path));
+        duration= await  player.getDuration();
+        print("duration of song :${duration?.inMinutes}:${duration?.inSeconds.remainder(60)}");
+        // // Listen to the current position of the song
+        // player.onPositionChanged.listen((Duration position) {
+        //   //print("Current Position: ${position.inMinutes}:${position.inSeconds.remainder(60)}");
+        //   _currentpositioin=position;
+        //
+        //   if(duration!=null && position.inSeconds >= duration!.inSeconds-1)
+        //     {
+        //       print("song is finished and next");
+        //       nextsong();
+        //     }
+        //
+        // });
         isplaying=true;
         notifyListeners();
   }
@@ -112,6 +142,7 @@ class currentplay extends ChangeNotifier
   void changesong(Song newsong)
   {
     song=newsong;
+    positionNotifier.value=Duration.zero;
     loadtheme();
     playSong();
 
@@ -175,8 +206,19 @@ class currentplay extends ChangeNotifier
     }
     notifyListeners();
   }
+
+  void seektoposition(double value)
+  {
+      final newposition=Duration(seconds: value.toInt());
+      player.seek(newposition);
+      print("seeking to $newposition");
+      positionNotifier.value=newposition;
+
+  }
 }
 
+
+//get the index of song in list
 int getindexofsong(Box<Song> songBox,Song song)
 {
   var keys=songBox.keys.toList();
