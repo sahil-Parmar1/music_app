@@ -8,6 +8,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'main.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'dart:io';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class Songlistprovider extends ChangeNotifier
 {
@@ -34,6 +36,16 @@ class Songlistprovider extends ChangeNotifier
     Songlist = songBox!.values.toList();
     print("new song is added..");// Update list
     notifyListeners();
+  }
+  void deletesong(Song song)async
+  {
+    int index=getindexofsong(songBox, song);
+    if(index>=0)
+    {
+      await songBox.delete(index);
+      Songlist = songBox!.values.toList();
+      notifyListeners();
+    }
   }
 
 
@@ -101,7 +113,8 @@ class currentplay extends ChangeNotifier
       });
   }
   final player=AudioPlayer();
-  bool isplaying=false;
+  ValueNotifier<bool> isplaying=ValueNotifier(false);
+
   Duration? duration;
   Duration _currentpositioin=Duration.zero;
 
@@ -109,43 +122,41 @@ class currentplay extends ChangeNotifier
 
   void playSong()async
   {
-        await player.play(DeviceFileSource(song.path));
-        duration= await  player.getDuration();
-        print("duration of song :${duration?.inMinutes}:${duration?.inSeconds.remainder(60)}");
-        // // Listen to the current position of the song
-        // player.onPositionChanged.listen((Duration position) {
-        //   //print("Current Position: ${position.inMinutes}:${position.inSeconds.remainder(60)}");
-        //   _currentpositioin=position;
-        //
-        //   if(duration!=null && position.inSeconds >= duration!.inSeconds-1)
-        //     {
-        //       print("song is finished and next");
-        //       nextsong();
-        //     }
-        //
-        // });
-        isplaying=true;
-        notifyListeners();
+
+       try
+           {
+             await player.play(DeviceFileSource(song.path));
+             duration= await  player.getDuration();
+             print("duration of song :${duration?.inMinutes}:${duration?.inSeconds.remainder(60)}");
+             isplaying.value=true;
+           }
+        catch(e)
+        {
+          print("error in $e");
+          showToast("song not found ! try to Refresh it");
+        }
+
+
   }
   void stop()async
   {
     await player.stop();
-    isplaying=false;
-    notifyListeners();
+    isplaying.value=false;
+    //notifyListeners();
   }
   void pause()async
   {
     await player.pause();
-    isplaying=false;
-    notifyListeners();
+    isplaying.value=false;
+    //notifyListeners();
   }
+
   void changesong(Song newsong)
   {
     song=newsong;
     positionNotifier.value=Duration.zero;
     loadtheme();
     playSong();
-
   }
 
   //function for next song
@@ -167,6 +178,7 @@ class currentplay extends ChangeNotifier
       }
   }
 
+  //function for prev song
   void prevsong()
   {
     int index=getindexofsong(songBox, song);
@@ -184,6 +196,8 @@ class currentplay extends ChangeNotifier
 
     }
   }
+
+  //load the theme of PlayerScreen
   void loadtheme()
   {
     Random random=Random();
@@ -207,6 +221,7 @@ class currentplay extends ChangeNotifier
     notifyListeners();
   }
 
+  //seeking custom position in playing song
   void seektoposition(double value)
   {
       final newposition=Duration(seconds: value.toInt());
@@ -215,6 +230,7 @@ class currentplay extends ChangeNotifier
       positionNotifier.value=newposition;
 
   }
+
 }
 
 
@@ -231,4 +247,17 @@ int getindexofsong(Box<Song> songBox,Song song)
     }
   }
   return -1;
+}
+
+
+//alert message
+void showToast(String message) {
+  Fluttertoast.showToast(
+    msg: message,
+    toastLength: Toast.LENGTH_SHORT, // or Toast.LENGTH_LONG
+    gravity: ToastGravity.BOTTOM,    // Position: TOP, CENTER, BOTTOM
+    backgroundColor: Colors.black54,
+    textColor: Colors.white,
+    fontSize: 16.0,
+  );
 }

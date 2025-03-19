@@ -43,6 +43,7 @@ dependencies:
   id3: ^1.0.2
   path: ^1.9.1
   audioplayers: ^6.4.0
+  fluttertoast: ^8.2.12
 
 dev_dependencies:
   flutter_test:

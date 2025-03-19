@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:music_app_2/provider_classes.dart';
 import 'package:cupertino_icons/cupertino_icons.dart';
 import 'package:flutter/cupertino.dart';
+import 'dart:io';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -174,15 +176,33 @@ class _HomeScreenState extends State<HomeScreen> {
                         IconButton(onPressed: (){
                           currentplayprovider.prevsong();
                         }, icon: Icon(CupertinoIcons.backward_fill,color: currentplayprovider.Theme.tab,)),
-                        IconButton(onPressed: (){
-                          if(currentplayprovider.isplaying)
-                          currentplayprovider.pause();
-                          else
-                            currentplayprovider.playSong();
+                        ValueListenableBuilder<bool>(
+                            valueListenable: currentplayprovider.isplaying,
+                            builder:(context,playing,child){
+                              return AnimatedSwitcher(
+                                duration: Duration(milliseconds: 500), // Smooth transition
+                                transitionBuilder: (Widget child, Animation<double> animation) {
+                                  return ScaleTransition(scale: animation, child: child);
 
-                        }, icon: !currentplayprovider.isplaying?
-                        Icon(CupertinoIcons.play_arrow_solid,color: currentplayprovider.Theme.tab,):
-                        Icon(CupertinoIcons.pause_fill,color: currentplayprovider.Theme.tab)),
+                                },
+                                child: IconButton(
+                                  key: ValueKey<bool>(playing), // Prevents unnecessary rebuilds
+                                  onPressed: () {
+                                    if (playing)
+                                      currentplayprovider.pause();
+                                    else
+                                      currentplayprovider.playSong();
+                                  },
+                                  icon: Icon(
+                                    playing
+                                        ? CupertinoIcons.pause_fill
+                                        : CupertinoIcons.play_arrow_solid,
+                                    color: currentplayprovider.Theme.tab,
+                                    size: 30,
+                                  ),
+                                ),
+                              );
+                            }),
 
                         IconButton(onPressed: (){
                                  currentplayprovider.nextsong();
