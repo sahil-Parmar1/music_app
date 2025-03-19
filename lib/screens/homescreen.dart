@@ -6,6 +6,7 @@ import 'package:music_app_2/provider_classes.dart';
 import 'package:cupertino_icons/cupertino_icons.dart';
 import 'package:flutter/cupertino.dart';
 import 'dart:io';
+import 'package:music_app_2/theme/colors.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -73,7 +74,65 @@ class _HomeScreenState extends State<HomeScreen> {
                            constraints: BoxConstraints(),
                          ),
                          IconButton(
-                           onPressed: () {},
+                           onPressed: () {
+                             showModalBottomSheet(
+                                 shape: RoundedRectangleBorder(
+                                     borderRadius: BorderRadius.vertical(top: Radius.circular(20))
+                                 ),
+                                 backgroundColor: colortheme.theme.background,
+                                 context: context,
+                                 builder: (context){
+                                   //theme
+                                   final Map<String,ThemeColor> themes={
+                                     "darkblue":DarkBlue(),
+                                     "darkgreen":DarkGreen(),
+                                     "darkpink":DarkPink(),
+                                     "darkorange":DarkOrange(),
+                                     "darkred":DarkRed(),
+                                     "whiteblue":WhiteBlue(),
+                                     "whitegreen":WhiteGreen(),
+                                     "whitepink":WhitePink(),
+                                     "whiteorange":WhiteOrange(),
+                                     "whitered":WhiteRed(),
+                                   };
+                                   return Padding(
+                                     padding: const EdgeInsets.all(16.0),
+                                     child: Column(
+                                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                       crossAxisAlignment: CrossAxisAlignment.start,
+                                       children: [
+                                         Padding(
+                                           padding: const EdgeInsets.only(top: 2.0,bottom: 8.0),
+                                           child: Text("Theme",textAlign:TextAlign.center,style: TextStyle(fontSize: 23,color: colortheme.theme.tab),),
+                                         ),
+                                         Padding(
+                                           padding: const EdgeInsets.all(8.0),
+                                           child: ListView.builder(
+                                             scrollDirection: Axis.horizontal,
+                                              itemCount:themes.length,
+                                               itemBuilder: (context,index){
+                                               String themekey=themes.keys.elementAt(index);
+                                               ThemeColor theme=themes[themekey]!;
+                                                 return GestureDetector(
+                                                   onTap: (){
+
+                                                   },
+                                                   child: Container(
+                                                     width: 50,
+                                                     height: 50,
+                                                     decoration: BoxDecoration(
+                                                     color: theme.tab,
+                                                     borderRadius: BorderRadius.circular(50),
+                                                   ),),
+                                                 );
+                                           }),
+                                         )
+
+                                       ],
+                                     ),
+                                   );
+                                 });
+                           },
                            icon: Icon(CupertinoIcons.settings, size: 20, color: colortheme.theme.text), // Smaller icon
                            padding: EdgeInsets.zero,
                            constraints: BoxConstraints(),

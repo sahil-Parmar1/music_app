@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:ffi';
+//import 'dart:ffi';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -89,7 +89,7 @@ class _SongState extends State<SongScreen> {
                        ],
                      ),),
             );
-      }):Center(child: Text("No Songs are Found!",style: TextStyle(color: colortheme.theme.tab),),),
+      }):Center(child: Text("No Songs are Found! Restart the App",style: TextStyle(color: colortheme.theme.tab),),),
     );
   }
 }
@@ -126,142 +126,233 @@ class _PlayerScreenState extends State<PlayerScreen> {
     return  Material(
       child: Scaffold(
           backgroundColor: currentplayprovider.Theme.background,
-          body: Center(
-            child: Hero(
-              tag: 'player',
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-      
-                    ValueListenableBuilder<bool>(valueListenable: currentplayprovider.isplaying,
-                        builder: (context,playing,child){
-                       return    Padding(
-                         padding: const EdgeInsets.all(8.0),
-                         child: AnimatedContainer(
-                           duration: Duration(milliseconds: 400), // Adjust duration for smoother effect
-                           curve: Curves.easeInOut, // Smooth transition curve
-                           width: playing ? 250 : 220,
-                           height: playing ? 250 : 220,
-                           child: ClipRRect(
-                             borderRadius: BorderRadius.circular(10),
-                             child: buildSongImage(
-                               base64Image: currentplayprovider.song.Image,
-                               width: double.infinity, // Use full width of AnimatedContainer
-                               height: double.infinity, // Use full height of AnimatedContainer
-                             ),
-                           ),
-                         ),
-                       );
-                        }),
-      
-      
-                    Column(
+          body: Stack(
+            children: [
+              Center(
+                child: Hero(
+                  tag: 'player',
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text("${currentplayprovider.song.title}",style:TextStyle(color: currentplayprovider.Theme.tab,fontSize: 20),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,),
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Align(
-                            alignment: Alignment.bottomCenter,
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Expanded(child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Text("${currentplayprovider.song.artist??"Unknown"}",style:TextStyle(color: currentplayprovider.Theme.text,fontSize: 15),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,),
-                                )),
-                                IconButton(onPressed: (){}, icon: Icon(CupertinoIcons.heart_fill,color: currentplayprovider.Theme.tab,)),
-                                IconButton(onPressed: (){}, icon: Icon(CupertinoIcons.ellipsis_vertical,color: currentplayprovider.Theme.tab,)),
-      
-                              ],
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-      
-                     ValueListenableBuilder<Duration>(
-                         valueListenable: currentplayprovider.positionNotifier,
-                         builder: (context,position,child){
-                           return Padding(
-                             padding: const EdgeInsets.only(right: 15,left: 15),
-                             child: Material(
-                               color: currentplayprovider.Theme.background,
-                               child: Slider(
-                                 min: 0,
-                                 max: currentplayprovider.duration?.inSeconds.toDouble()??1,
-                                 value: position.inSeconds.toDouble().clamp(0, currentplayprovider.duration?.inSeconds.toDouble()??1),
-                                 onChanged: (value){
-                                   //play to this poistion
-                                   print("${value.runtimeType}");
-                                   print("value :$value");
-                                   currentplayprovider.seektoposition(value);
-                                 },
+                        ValueListenableBuilder<bool>(valueListenable: currentplayprovider.isplaying,
+                            builder: (context,playing,child){
+                           return    Padding(
+                             padding: const EdgeInsets.all(8.0),
+                             child: AnimatedContainer(
+                               duration: Duration(milliseconds: 400), // Adjust duration for smoother effect
+                               curve: Curves.easeInOut, // Smooth transition curve
+                               width: playing ? 300 : 250,
+                               height: playing ? 300 : 250,
+                               child: ClipRRect(
+                                 borderRadius: BorderRadius.circular(10),
+                                 child: buildSongImage(
+                                   base64Image: currentplayprovider.song.Image,
+                                   width: double.infinity, // Use full width of AnimatedContainer
+                                   height: double.infinity, // Use full height of AnimatedContainer
+                                 ),
                                ),
                              ),
                            );
-                         }),
-      
-                     ValueListenableBuilder<Duration>(
-                         valueListenable: currentplayprovider.positionNotifier,
-                         builder: (context,position,child){
-                           return Padding(
-                             padding: const EdgeInsets.only(right: 40,left: 40),
-                             child: Row(
-                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                               children: [
-                                 Text(formatDuration(position),style: TextStyle(color: currentplayprovider.Theme.text),), // Current Time
-                                 Text(formatDuration(currentplayprovider.duration ?? Duration.zero),style: TextStyle(color: currentplayprovider.Theme.text),), // Total Time
-                               ],
-                             ),
-                           );
-                     }),
-      
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        IconButton(onPressed: (){
-                          currentplayprovider.prevsong();
-                        }, icon: Icon(CupertinoIcons.backward_fill,color: currentplayprovider.Theme.tab,size: 45,)),
-                        ValueListenableBuilder<bool>(
-                            valueListenable: currentplayprovider.isplaying,
-                            builder:(context,playing,child){
-                              return AnimatedSwitcher(
-                                duration: Duration(milliseconds: 500), // Smooth transition
-                                transitionBuilder: (Widget child, Animation<double> animation) {
-                                  return ScaleTransition(scale: animation, child: child);
-      
-                                },
-                                child: IconButton(
-                                  key: ValueKey<bool>(playing), // Prevents unnecessary rebuilds
-                                  onPressed: () {
-                                    if (playing)
-                                      currentplayprovider.pause();
-                                    else
-                                      currentplayprovider.playSong();
-                                  },
-                                  icon: Icon(
-                                    playing
-                                        ? CupertinoIcons.pause_fill
-                                        : CupertinoIcons.play_arrow_solid,
-                                    color: currentplayprovider.Theme.tab,
-                                    size: 45,
-                                  ),
-                                ),
-                              );
                             }),
-                        IconButton(onPressed: (){
-                          currentplayprovider.nextsong();
-                        }, icon: Icon(CupertinoIcons.forward_fill,color: currentplayprovider.Theme.tab,size: 45,)),
+
+
+                        Column(
+                          children: [
+                            Text("${currentplayprovider.song.title}",style:TextStyle(color: currentplayprovider.Theme.tab,fontSize: 20),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,),
+                            Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Align(
+                                alignment: Alignment.bottomCenter,
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Expanded(child: Padding(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: Text("${currentplayprovider.song.artist??"Unknown"}",style:TextStyle(color: currentplayprovider.Theme.text,fontSize: 15),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,),
+                                    )),
+                                    IconButton(onPressed: (){
+                                      showToast("Liked ${currentplayprovider.song.title}");
+                                    }, icon: Icon(CupertinoIcons.heart_fill,color: currentplayprovider.Theme.tab,)),
+
+
+                                  ],
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+
+                         ValueListenableBuilder<Duration>(
+                             valueListenable: currentplayprovider.positionNotifier,
+                             builder: (context,position,child){
+                               return Padding(
+                                 padding: const EdgeInsets.only(right: 15,left: 15),
+                                 child: Material(
+                                   color: currentplayprovider.Theme.background,
+                                   child: SliderTheme(
+                                     data: SliderThemeData(
+                                       activeTrackColor: currentplayprovider.Theme.tab,
+                                       thumbColor: currentplayprovider.Theme.tab,
+                                       overlayColor:currentplayprovider.Theme.tab,
+                                       thumbShape: RoundSliderThumbShape(enabledThumbRadius: 0),
+                                       trackHeight: 10.0
+
+                                     ),
+                                     child: Slider(
+                                       min: 0,
+                                       max: currentplayprovider.duration?.inSeconds.toDouble()??1,
+                                       value: position.inSeconds.toDouble().clamp(0, currentplayprovider.duration?.inSeconds.toDouble()??1), //is ensuring that the Slider value stays within a valid range
+                                       onChanged: (value){
+                                         //play to this poistion
+                                         print("${value.runtimeType}");
+                                         print("value :$value");
+                                         currentplayprovider.seektoposition(value);
+                                       },
+                                     ),
+                                   ),
+                                 ),
+                               );
+                             }),
+
+                         ValueListenableBuilder<Duration>(
+                             valueListenable: currentplayprovider.positionNotifier,
+                             builder: (context,position,child){
+                               return Padding(
+                                 padding: const EdgeInsets.only(right: 40,left: 40),
+                                 child: Row(
+                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                   children: [
+                                     Text(formatDuration(position),style: TextStyle(color: currentplayprovider.Theme.text),), // Current Time
+                                     Text(formatDuration(currentplayprovider.duration ?? Duration.zero),style: TextStyle(color: currentplayprovider.Theme.text),), // Total Time
+                                   ],
+                                 ),
+                               );
+                         }),
+
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            IconButton(onPressed: (){
+                              currentplayprovider.prevsong();
+                            }, icon: Icon(CupertinoIcons.backward_fill,color: currentplayprovider.Theme.tab,size: 45,)),
+                            ValueListenableBuilder<bool>(
+                                valueListenable: currentplayprovider.isplaying,
+                                builder:(context,playing,child){
+                                  return AnimatedSwitcher(
+                                    duration: Duration(milliseconds: 500), // Smooth transition
+                                    transitionBuilder: (Widget child, Animation<double> animation) {
+                                      return ScaleTransition(scale: animation, child: child);
+
+                                    },
+                                    child: IconButton(
+                                      key: ValueKey<bool>(playing), // Prevents unnecessary rebuilds
+                                      onPressed: () {
+                                        if (playing)
+                                          currentplayprovider.pause();
+                                        else
+                                          currentplayprovider.playSong();
+                                      },
+                                      icon: Icon(
+                                        playing
+                                            ? CupertinoIcons.pause_fill
+                                            : CupertinoIcons.play_arrow_solid,
+                                        color: currentplayprovider.Theme.tab,
+                                        size: 45,
+                                      ),
+                                    ),
+                                  );
+                                }),
+                            IconButton(onPressed: (){
+                              currentplayprovider.nextsong();
+                            }, icon: Icon(CupertinoIcons.forward_fill,color: currentplayprovider.Theme.tab,size: 45,)),
+                          ],
+                        ),
+                        
+                        Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                            IconButton(onPressed: (){}, icon: Icon(Icons.equalizer,color: currentplayprovider.Theme.tab,size: 30,)),
+                            IconButton(onPressed: (){}, icon: Icon(Icons.add_to_photos,color: currentplayprovider.Theme.tab,size: 30,)),
+                              IconButton(onPressed: (){
+                                showModalBottomSheet(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.vertical(top: Radius.circular(20))
+                                  ),
+                                    backgroundColor: currentplayprovider.Theme.background,
+                                    context: context,
+                                    builder: (context){
+                                     return Padding(
+                                       padding: const EdgeInsets.all(16.0),
+                                       child: Column(
+                                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                         crossAxisAlignment: CrossAxisAlignment.start,
+                                         children: [
+                                           Padding(
+                                             padding: const EdgeInsets.only(top: 2.0,bottom: 8.0),
+                                             child: Text("Sleep Timer",textAlign:TextAlign.center,style: TextStyle(fontSize: 23,color: currentplayprovider.Theme.tab),),
+                                           ),
+                                           Padding(
+                                             padding: const EdgeInsets.all(8.0),
+                                             child: Text("Turn Off",style: TextStyle(fontSize: 18,color: currentplayprovider.Theme.text),),
+                                           ),
+                                           Padding(
+                                             padding: const EdgeInsets.all(8.0),
+                                             child: Text("10 Minutes",style: TextStyle(fontSize: 18,color:currentplayprovider.Theme.text),),
+                                           ),
+                                           Padding(
+                                             padding: const EdgeInsets.all(8.0),
+                                             child: Text("20 Minutes",style: TextStyle(fontSize: 18,color: currentplayprovider.Theme.text),),
+                                           ),
+                                           Padding(
+                                             padding: const EdgeInsets.all(8.0),
+                                             child: Row(
+                                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                               children: [
+                                                 Text("Custom",style: TextStyle(fontSize: 18,color: currentplayprovider.Theme.text),),
+                                                 Icon(CupertinoIcons.right_chevron)
+                                               ],
+                                             ),
+                                           ),
+
+                                         ],
+                                       ),
+                                     );
+                                    });
+                              }, icon: Icon(CupertinoIcons.clock_solid,color: currentplayprovider.Theme.tab,size: 30,)),
+                          ],),
+                        )
+
                       ],
                     ),
-      
-                  ],
+                  ),
                 ),
               ),
-            ),
+              // Position the arrow at the top
+              Positioned(
+                top: 40, // Adjust as needed
+                left: 10, // Align it to the left
+                child: IconButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  icon: Row(
+                    children: [
+                      Icon(
+                        Icons.arrow_drop_down_rounded,
+                        size: 45,
+                        color: currentplayprovider.Theme.tab,
+                      ),
+                      Text("${currentplayprovider.song.title}",style:TextStyle(color: currentplayprovider.Theme.tab,fontSize: 20),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
       
       ),
@@ -287,3 +378,6 @@ Future<void> checkfordelete(context)async
          songlist.deletesong(song);
      }
 }
+
+
+

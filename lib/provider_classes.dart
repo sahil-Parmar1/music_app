@@ -111,6 +111,7 @@ class currentplay extends ChangeNotifier
             nextsong();
           }
       });
+
   }
   final player=AudioPlayer();
   ValueNotifier<bool> isplaying=ValueNotifier(false);
