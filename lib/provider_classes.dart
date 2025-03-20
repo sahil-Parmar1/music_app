@@ -101,6 +101,7 @@ class currentplay extends ChangeNotifier
   Song song=Song(path: '');
   ThemeColor Theme=S1();
   final ValueNotifier<Duration> positionNotifier=ValueNotifier(Duration.zero);
+
   currentplay(this.songBox)
   {
       player.onPositionChanged.listen((Duration newPosition){
@@ -261,4 +262,36 @@ void showToast(String message) {
     textColor: Colors.white,
     fontSize: 16.0,
   );
+}
+
+
+//playlist provider
+class playlistprovider extends ChangeNotifier
+{
+  List<String> playlists=[];
+  String key="playlists";
+  playlistprovider(){
+    _loadplaylists();
+  }
+  void _loadplaylists()async
+  {
+    playlists=await getfromShared_preference(key: key)??[];
+    notifyListeners();
+  }
+  void addplaylist(String playlistname)async
+  {
+    List<String> newplaylist=await getfromShared_preference(key: key)??[];
+    newplaylist.add(playlistname);
+    savetoShared_preference(string: newplaylist, key: key);
+    _loadplaylists();
+  }
+  void deleteplaylist(String playlistname)async
+  {
+    List<String> newplaylist=await getfromShared_preference(key: key)??[];
+    newplaylist.remove(playlistname);
+    savetoShared_preference(string: newplaylist, key: key);
+    showToast("$playlistname was deleted");
+    _loadplaylists();
+  }
+
 }
