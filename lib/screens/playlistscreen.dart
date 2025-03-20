@@ -46,43 +46,42 @@ class _PlaylistscreenState extends State<Playlistscreen> {
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Container(
-              decoration: BoxDecoration(
-                  color: colortheme.theme.tab,
-                  borderRadius: BorderRadius.circular(20)
-              ),
-              child: Hero(
-                tag: "playlist",
-                child: GestureDetector(
-                          onTap: (){
-
-                          Box<Song> box=Hive.box<Song>('likedsongs');
-                          print("likedsongs is tapped");
-                                Navigator.push(context,
-                                MaterialPageRoute(builder: (context)=>ChangeNotifierProvider(
-                                create: (context)=>Songlistprovider(box)
-                                ,child: playlistsongs())));
-                          },
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
+            child: GestureDetector(
+              onTap: (){
+                Box<Song> box=Hive.box<Song>('likedsongs');
+                print("likedsongs is tapped");
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context)=>ChangeNotifierProvider(
+                        create: (context)=>Songlistprovider(box)
+                        ,child: playlistsongs(nameofplaylist: "Liked Songs"))));
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                    color: colortheme.theme.tab,
+                    borderRadius: BorderRadius.circular(20)
+                ),
+                child: Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Hero(
+                        tag: "Liked Songs",
                         child: Image.asset("assets/music.png",width: 80,
                         height: 80,
                           fit: BoxFit.cover,
                         ),
                       ),
-                      Column(
-                        children: [
-                          Text("🩷 Liked Songs",style: TextStyle(color: colortheme.theme.text,fontSize: 20,fontWeight: FontWeight.bold),),
-                        ],
-                      )
-                    ],
-                  ),
+                    ),
+                    Column(
+                      children: [
+                        Text("🩷 Liked Songs",style: TextStyle(color: colortheme.theme.text,fontSize: 20,fontWeight: FontWeight.bold),),
+                      ],
+                    )
+                  ],
                 ),
-              ),
 
-             ),
+               ),
+            ),
           ),
            Wrap(
              spacing: 1000.0,
@@ -91,56 +90,59 @@ class _PlaylistscreenState extends State<Playlistscreen> {
 
                return Padding(
                  padding: const EdgeInsets.all(10.0),
-                 child: Container(
-                   decoration: BoxDecoration(
-                       color: colortheme.theme.tab,
-                       borderRadius: BorderRadius.circular(20)
-                   ),
-                   child: Dismissible(
-                     key: Key(playlistitem),
-                     direction: DismissDirection.endToStart,
-                     onDismissed: (direction){
-                       playlist.deleteplaylist(playlistitem);
-                     },
-                     background: Container(
-                       decoration: BoxDecoration(
-                         borderRadius: BorderRadius.circular(20),
-                         color: Colors.red,
-                       ),
-
-                       alignment: Alignment.centerRight,
-                       padding: EdgeInsets.symmetric(horizontal: 20),
-                       child: const Icon(Icons.delete,color: Colors.white,),
+                 child: GestureDetector(
+                   onTap: ()async{
+                     await Hive.openBox<Song>(playlistitem);
+                     Box<Song> box=Hive.box<Song>(playlistitem);
+                     print("$playlistitem is tapped");
+                     Navigator.push(context,
+                         MaterialPageRoute(builder: (context)=>ChangeNotifierProvider(
+                             create: (context)=>Songlistprovider(box)
+                             ,child: playlistsongs(nameofplaylist:playlistitem))));
+                   },
+                   child: Container(
+                     decoration: BoxDecoration(
+                         color: colortheme.theme.tab,
+                         borderRadius: BorderRadius.circular(20)
                      ),
-                     child: Hero(
-                       tag: "playlist",
-                       child: GestureDetector(
-                         onTap: ()async{
-                           Box<Song> box=await Hive.openBox(playlistitem);
-                           Navigator.push(context,
-                           MaterialPageRoute(builder: (context)=>playlistsongs())
-                           );
-                         },
-                         child: Row(
-                           children: [
-                             Padding(
-                               padding: const EdgeInsets.all(8.0),
+                     child: Dismissible(
+                       key: Key(playlistitem),
+                       direction: DismissDirection.endToStart,
+                       onDismissed: (direction){
+                         playlist.deleteplaylist(playlistitem);
+                       },
+                       background: Container(
+                         decoration: BoxDecoration(
+                           borderRadius: BorderRadius.circular(20),
+                           color: Colors.red,
+                         ),
+
+                         alignment: Alignment.centerRight,
+                         padding: EdgeInsets.symmetric(horizontal: 20),
+                         child: const Icon(Icons.delete,color: Colors.white,),
+                       ),
+                       child: Row(
+                         children: [
+                           Padding(
+                             padding: const EdgeInsets.all(8.0),
+                             child: Hero(
+                               tag: "$playlistitem",
                                child: Image.asset("assets/music.png",width: 80,
                                  height: 80,
                                  fit: BoxFit.cover,
                                ),
                              ),
-                             Column(
-                               children: [
-                                 Text("${playlistitem}",style: TextStyle(color: colortheme.theme.text,fontSize: 20,fontWeight: FontWeight.bold),),
-                               ],
-                             )
-                           ],
-                         ),
+                           ),
+                           Column(
+                             children: [
+                               Text("${playlistitem}",style: TextStyle(color: colortheme.theme.text,fontSize: 20,fontWeight: FontWeight.bold),),
+                             ],
+                           )
+                         ],
                        ),
                      ),
-                   ),
 
+                   ),
                  ),
                );
              }).toList(),
@@ -192,8 +194,8 @@ void showPlaylistDialog(context) {
 
 //playlistsongs screen
 class playlistsongs extends StatefulWidget {
-
-  playlistsongs({super.key});
+ String nameofplaylist;
+  playlistsongs({super.key,required this.nameofplaylist});
 
   @override
   State<playlistsongs> createState() => _playlistsongsState();
@@ -206,58 +208,151 @@ class _playlistsongsState extends State<playlistsongs> {
     final colortheme=Provider.of<Themeprovider>(context);
     final currentplayprovider=Provider.of<currentplay>(context);
     return Material(
-      child: songProvider.Songlist.length>0?ListView.builder(
-          itemCount: songProvider.Songlist.length,
-          itemBuilder: (context,index){
-            if(currentplayprovider.song.path == songProvider.Songlist[index].path)
-              return GestureDetector(
-                onTap: (){
-                  currentplayprovider.changesong(songProvider.Songlist[index]);
-      
-                },
-                child: ListTile(
-                  title: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 70,
-                        height: 70,
-                        decoration: BoxDecoration(
-                            color: Colors.black,
-                            borderRadius: BorderRadius.circular(50)
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: ClipRRect(
-                              borderRadius: BorderRadius.circular(90),
-                              child: buildSongImage(base64Image:songProvider.Songlist[index].Image,width: 50,height: 50)),
-                        ),
-                      ),
-                      SizedBox(width: 10,),
-                      Expanded(child: Text("${songProvider.Songlist[index].title}",style: TextStyle(color: currentplayprovider.Theme.tab),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,))
-                    ],
-                  ),),
-              );
-            else
-              return GestureDetector(
-                onTap: (){
-                  currentplayprovider.changesong(songProvider.Songlist[index]);
-                },
-                child: ListTile(
-                  title: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: buildSongImage(base64Image:songProvider.Songlist[index].Image)),
-                      SizedBox(width: 10,),
-                      Expanded(child: Text("${songProvider.Songlist[index].title}",style: TextStyle(color: colortheme.theme.text),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,))
-                    ],
-                  ),),
-              );
-          }):Center(child: Text("No Songs are Found! Restart the App",style: TextStyle(color: colortheme.theme.tab),),),
+      color: colortheme.theme.background,
+      child: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 250.0,
+            floating: false,
+            pinned: false,
+            snap: false,
+            automaticallyImplyLeading: true,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back_ios, color: Colors.white, size: 24), // Custom icon
+              onPressed: () {
+                Navigator.pop(context); // Navigates back
+              },
+            ),
+            backgroundColor: colortheme.theme.background,
+            flexibleSpace: FlexibleSpaceBar(
+              centerTitle: true, // Ensures title is centered properly
+              title: Align(
+                alignment: Alignment.bottomCenter, // Centered horizontally at the bottom
+                child: Hero(
+                  tag: "${widget.nameofplaylist}",
+                  child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: songProvider.Songlist.length>0?buildSongImage(base64Image:songProvider.Songlist[0].Image,width: 140,height: 140):Image.asset("assets/music.png",width: 140,height: 140,fit: BoxFit.cover,)),
+                ),
+              ),
+            ),
+
+          ),
+          SliverAppBar(
+            expandedHeight: 30.0,
+            floating: true,
+            pinned: true,
+            toolbarHeight: 5.0,
+            automaticallyImplyLeading: false,
+            backgroundColor: colortheme.theme.background,
+            flexibleSpace: FlexibleSpaceBar(
+              centerTitle: true, // Ensures title is centered properly
+              title: Align(
+                alignment: Alignment.bottomCenter, // Centered horizontally at the bottom
+                child: Text(
+                  widget.nameofplaylist,
+                  style: TextStyle(color: colortheme.theme.text),
+                ),
+              ),
+            ),
+
+          ),
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+                  (context, index){
+                    if(index<songProvider.Songlist.length)
+                      {
+                        if(currentplayprovider.song.path == songProvider.Songlist[index].path)
+                          return GestureDetector(
+                            onTap: (){
+                              currentplayprovider.changesong(songProvider.Songlist[index]);
+                            },
+                            child: ListTile(
+                              title: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 70,
+                                    height: 70,
+                                    decoration: BoxDecoration(
+                                        color: Colors.black,
+                                        borderRadius: BorderRadius.circular(50)
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(90),
+                                          child: buildSongImage(base64Image:songProvider.Songlist[index].Image,width: 50,height: 50)),
+                                    ),
+                                  ),
+                                  SizedBox(width: 10,),
+                                  Expanded(child: Text("${songProvider.Songlist[index].title}",style: TextStyle(color: currentplayprovider.Theme.tab),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,))
+                                ],
+                              ),),
+                          );
+                        else
+                          return GestureDetector(
+                            onTap: (){
+                              currentplayprovider.changesong(songProvider.Songlist[index]);
+                            },
+                            child: ListTile(
+                              title: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: buildSongImage(base64Image:songProvider.Songlist[index].Image)),
+                                  SizedBox(width: 10,),
+                                  Expanded(child: Text("${songProvider.Songlist[index].title}",style: TextStyle(color: colortheme.theme.text),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,))
+                                ],
+                              ),),
+                          );
+                      }
+                       else
+                         return GestureDetector(
+                           onTap: (){
+
+                           },
+                           child: ListTile(
+                             title: Padding(
+                               padding: const EdgeInsets.symmetric(horizontal: 16,vertical:8 ),
+                               child: Card(
+                                 shape: RoundedRectangleBorder(
+                                   borderRadius: BorderRadius.circular(15)
+                                 ),
+                                 color: colortheme.theme.background,
+                                 child: Container(
+                                   padding: EdgeInsets.all(16),
+                                   width: 60,
+                                   height: 60,
+                                   child: Row(
+                                     mainAxisAlignment: MainAxisAlignment.center,
+                                     crossAxisAlignment: CrossAxisAlignment.center,
+                                     children: [
+                                       ClipRRect(
+                                           borderRadius: BorderRadius.circular(10),
+                                           child: Icon(Icons.add,size: 35,color: colortheme.theme.tab,)
+                                        ),
+                                       SizedBox(width: 10,),
+                                       Text("Add Song",style: TextStyle(color: colortheme.theme.text),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,)
+                                     ],
+                                   ),
+                                 ),
+                               ),
+                             ),),
+                         );
+
+              },
+              childCount: songProvider.Songlist.length+1,
+            )
+          ),
+
+        ],
+      ),
     );
   }
 }
+
+

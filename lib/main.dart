@@ -12,6 +12,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:id3/id3.dart';
 import 'screens/homescreen.dart';
 import 'package:path/path.dart' as pathforextract;
+import 'screens/playlistscreen.dart';
 
 void main()async
 {
@@ -26,6 +27,9 @@ void main()async
         ChangeNotifierProvider(create: (context) =>Themeprovider()),
         ChangeNotifierProvider(create: (context) =>Songlistprovider(songBox)),
         ChangeNotifierProvider(create: (context) =>currentplay(songBox)),
+        ChangeNotifierProvider(create: (context)=>playlistprovider(),
+          child: Playlistscreen(),
+        ),
       ],
         child: musicApp(),
       )

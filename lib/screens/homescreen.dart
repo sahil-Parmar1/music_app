@@ -221,9 +221,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
             children: [
              SongScreen(),
-              ChangeNotifierProvider(create: (context)=>playlistprovider(),
-              child: Playlistscreen(),
-              ),
+              Playlistscreen(),
               Album(),
             ],
           ),

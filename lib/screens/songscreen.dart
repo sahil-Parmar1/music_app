@@ -126,6 +126,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   Widget build(BuildContext context) {
     final currentplayprovider=Provider.of<currentplay>(context);
     final songlistprovider=Provider.of<Songlistprovider>(context);
+    final playlist=Provider.of<playlistprovider>(context);
     return  Material(
       child: Scaffold(
           backgroundColor: currentplayprovider.Theme.background,
@@ -283,7 +284,11 @@ class _PlayerScreenState extends State<PlayerScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
                             IconButton(onPressed: (){}, icon: Icon(Icons.equalizer,color: currentplayprovider.Theme.tab,size: 30,)),
-                            IconButton(onPressed: (){}, icon: Icon(Icons.add_to_photos,color: currentplayprovider.Theme.tab,size: 30,)),
+                            IconButton(onPressed: (){
+                            //playlist add
+
+
+                            }, icon: Icon(Icons.add_to_photos,color: currentplayprovider.Theme.tab,size: 30,)),
                               IconButton(onPressed: (){
                                 showModalBottomSheet(
                                   shape: RoundedRectangleBorder(
