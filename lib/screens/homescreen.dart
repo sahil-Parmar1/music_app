@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:music_app_2/main.dart';
+import 'package:music_app_2/screens/playlistscreen.dart';
 import 'package:music_app_2/screens/songscreen.dart';
 import 'package:provider/provider.dart';
 import 'package:music_app_2/provider_classes.dart';
@@ -98,39 +99,63 @@ class _HomeScreenState extends State<HomeScreen> {
                                    return Padding(
                                      padding: const EdgeInsets.all(16.0),
                                      child: Column(
-                                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                       crossAxisAlignment: CrossAxisAlignment.start,
+                                       mainAxisSize: MainAxisSize.min, // Adjust height to content
+                                       crossAxisAlignment: CrossAxisAlignment.center, // Center content
                                        children: [
+                                         // Title
                                          Padding(
-                                           padding: const EdgeInsets.only(top: 2.0,bottom: 8.0),
-                                           child: Text("Theme",textAlign:TextAlign.center,style: TextStyle(fontSize: 23,color: colortheme.theme.tab),),
+                                           padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                           child: Text(
+                                             "Select Theme",
+                                             textAlign: TextAlign.center,
+                                             style: TextStyle(
+                                               fontSize: 23,
+                                               fontWeight: FontWeight.bold,
+                                               color: colortheme.theme.tab,
+                                             ),
+                                           ),
                                          ),
-                                         Padding(
-                                           padding: const EdgeInsets.all(8.0),
-                                           child: ListView.builder(
-                                             scrollDirection: Axis.horizontal,
-                                              itemCount:themes.length,
-                                               itemBuilder: (context,index){
-                                               String themekey=themes.keys.elementAt(index);
-                                               ThemeColor theme=themes[themekey]!;
-                                                 return GestureDetector(
-                                                   onTap: (){
 
-                                                   },
-                                                   child: Container(
-                                                     width: 50,
-                                                     height: 50,
-                                                     decoration: BoxDecoration(
-                                                     color: theme.tab,
-                                                     borderRadius: BorderRadius.circular(50),
-                                                   ),),
-                                                 );
-                                           }),
-                                         )
+                                         // Theme selection grid
+                                         Wrap(
+                                           spacing: 12, // Horizontal spacing
+                                           runSpacing: 12, // Vertical spacing
+                                           alignment: WrapAlignment.center, // Center-align the circles
+                                           children: themes.entries.map((entry) {
+                                             String themekey = entry.key;
+                                             ThemeColor theme = entry.value;
 
+                                             return GestureDetector(
+                                               onTap: () {
+                                                 // Handle theme selection
+                                                 colortheme.settheme(themekey);
+                                               },
+                                               child: AnimatedContainer(
+                                                 duration: Duration(milliseconds: 300), // Smooth animation
+                                                 width: 60,
+                                                 height: 60,
+                                                 decoration: BoxDecoration(
+                                                   shape: BoxShape.circle,
+                                                   color: theme.tab,
+                                                   boxShadow: [
+                                                     BoxShadow(
+                                                       color: colortheme.theme.background,
+                                                       blurRadius: 8,
+                                                       spreadRadius: 2,
+                                                       offset: Offset(2, 4),
+                                                     ),
+                                                   ],
+                                                 ),
+                                               ),
+                                             );
+                                           }).toList(),
+                                         ),
+
+                                         SizedBox(height: 20), // Extra spacing at the bottom
                                        ],
                                      ),
                                    );
+
                                  });
                            },
                            icon: Icon(CupertinoIcons.settings, size: 20, color: colortheme.theme.text), // Smaller icon
@@ -196,7 +221,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
             children: [
              SongScreen(),
-              Playlist(),
+              Playlistscreen(),
               Album(),
             ],
           ),
@@ -283,19 +308,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
 
 
-class Playlist extends StatefulWidget {
-  const Playlist({super.key});
 
-  @override
-  State<Playlist> createState() => _PlaylistState();
-}
-
-class _PlaylistState extends State<Playlist> {
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text("Playlist"),);
-  }
-}
 class Album extends StatefulWidget {
   const Album({super.key});
 

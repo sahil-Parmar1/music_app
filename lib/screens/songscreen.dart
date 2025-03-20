@@ -67,7 +67,7 @@ class _SongState extends State<SongScreen> {
                         ),
                       ),
                       SizedBox(width: 10,),
-                      Expanded(child: Text("${songProvider.Songlist[index].title}",style: TextStyle(color: currentplayprovider.Theme.background),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,))
+                      Expanded(child: Text("${songProvider.Songlist[index].title}",style: TextStyle(color: currentplayprovider.Theme.tab),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,))
                     ],
                   ),),
               );
