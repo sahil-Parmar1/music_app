@@ -26,6 +26,10 @@ class Songlistprovider extends ChangeNotifier
     notifyListeners();
   }
 
+  void Refresh()
+  {
+    _loadSongs();
+  }
   void addSong(Song song) {
     for(Song oldsong in Songlist)
       {
@@ -293,5 +297,10 @@ class playlistprovider extends ChangeNotifier
     showToast("$playlistname was deleted");
     _loadplaylists();
   }
-
+  // Future<int> calculatesongs(String boxname)async{
+  //
+  //     return box.values.length;
+  //   }
 }
+
+

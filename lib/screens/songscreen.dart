@@ -10,6 +10,8 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:music_app_2/store/songs.dart';
 import 'package:flutter/cupertino.dart';
 import 'dart:io';
+import 'package:hive_flutter/hive_flutter.dart';
+
 
 class SongScreen extends StatefulWidget {
   const SongScreen({super.key});
@@ -123,6 +125,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   @override
   Widget build(BuildContext context) {
     final currentplayprovider=Provider.of<currentplay>(context);
+    final songlistprovider=Provider.of<Songlistprovider>(context);
     return  Material(
       child: Scaffold(
           backgroundColor: currentplayprovider.Theme.background,
@@ -173,8 +176,11 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                       padding: const EdgeInsets.all(16.0),
                                       child: Text("${currentplayprovider.song.artist??"Unknown"}",style:TextStyle(color: currentplayprovider.Theme.text,fontSize: 15),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,),
                                     )),
-                                    IconButton(onPressed: (){
+                                    IconButton(onPressed: ()async{
+                                      var box=Hive.box<Song>("likedsongs");
+                                          addSongtoplaylist(currentplayprovider.song, box);
                                       showToast("Liked ${currentplayprovider.song.title}");
+
                                     }, icon: Icon(CupertinoIcons.heart_fill,color: currentplayprovider.Theme.tab,)),
 
 
@@ -381,3 +387,24 @@ Future<void> checkfordelete(context)async
 
 
 
+//function to add song in playlist
+void addSongtoplaylist(Song song,var songbox) {
+  List<Song> songList = songbox.values.cast<Song>().toList(); // Ensure correct type
+
+  // Check if the song is already in the playlist
+  for (Song oldSong in songList) {
+    if (oldSong.path == song.path) return;
+  }
+// Create a new instance before adding
+  Song newSong = Song(path: song.path,
+   title: song.title,
+    artist: song.artist,
+    album: song.album,
+    Image: song.Image,
+    publisher: song.publisher,
+    genre: song.genre
+  );
+
+  songbox.add(newSong); // Add the new song
+  print("New song added: ${song.title} songlist : $songList");
+}

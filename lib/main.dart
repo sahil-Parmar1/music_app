@@ -20,6 +20,7 @@ void main()async
   // Register the adapter before opening the box
   Hive.registerAdapter(SongAdapter());
   Box<Song> songBox=await Hive.openBox<Song>('songs');
+  await Hive.openBox<Song>('likedsongs');
   runApp(
       MultiProvider(providers: [
         ChangeNotifierProvider(create: (context) =>Themeprovider()),
