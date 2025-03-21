@@ -1,5 +1,5 @@
 import 'dart:math';
-
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:music_app_2/theme/colors.dart';
 import 'package:provider/provider.dart';
@@ -105,7 +105,9 @@ class currentplay extends ChangeNotifier
   Song song=Song(path: '');
   ThemeColor Theme=S1();
   final ValueNotifier<Duration> positionNotifier=ValueNotifier(Duration.zero);
-
+  Timer? _timer;
+  Timer? get timer => _timer;
+  ValueNotifier<int> secondsRemaining=ValueNotifier<int>(0);
   currentplay(this.songBox)
   {
       player.onPositionChanged.listen((Duration newPosition){
@@ -123,7 +125,6 @@ class currentplay extends ChangeNotifier
 
   Duration? duration;
   Duration _currentpositioin=Duration.zero;
-
   Duration get position => _currentpositioin;
 
   void playSong()async
@@ -155,6 +156,37 @@ class currentplay extends ChangeNotifier
     await player.pause();
     isplaying.value=false;
     //notifyListeners();
+  }
+
+  //sleep timer
+  void starttimer(int minutes)async
+  {
+   secondsRemaining.value=minutes*60;
+   _timer=Timer.periodic(const Duration(seconds:  1),(timer){
+     if(  secondsRemaining.value >0)
+       {
+         int min=  secondsRemaining.value~/60;
+         int sec=  secondsRemaining.value%60;
+         print("time left:$min:${sec.toString().padLeft(2,'0')}");
+         secondsRemaining.value--;
+       }
+     else{
+       stopTimer();
+       stop();
+     }
+   });
+   notifyListeners();
+  }
+
+  //stop timer
+  void stopTimer(){
+    if(_timer!=null)
+      {
+        _timer!.cancel();
+        _timer=null;
+        notifyListeners();
+        print("timer finished");
+      }
   }
 
   void changesong(Song newsong)

@@ -288,7 +288,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                             IconButton(onPressed: (){
                             //playlist add
                               showModalBottomSheet(
-                                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                                  backgroundColor: currentplayprovider.Theme.background,
                                   context: context,
                                   shape: const RoundedRectangleBorder(
                                     borderRadius: BorderRadius.vertical(top: Radius.circular(16))
@@ -309,7 +309,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                         Flexible(
                                           child: ListView.separated(
                                             shrinkWrap: true,
-                                              separatorBuilder: (_,_)=>const Divider(),
+                                              separatorBuilder: (_,_)=>const SizedBox(height: 2,),
                                               itemCount: playlist.playlists.length+1,
                                             itemBuilder: (context, index) {
                                               if (index < playlist.playlists.length) {
@@ -326,7 +326,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                                   title: Text(
                                                     playlist.playlists[index],
                                                     style: TextStyle(
-                                                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                                                      color: currentplayprovider.Theme.text,
                                                       fontSize: 18,
                                                     ),
                                                   ),
@@ -341,10 +341,10 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                                 );
                                               } else {
                                                 return ListTile(
-                                                  leading: Icon(Icons.add, size: 40, color: Theme.of(context).primaryColor),
+                                                  leading: Icon(Icons.add, size: 40, color: currentplayprovider.Theme.tab),
                                                   title: Text(
                                                     "New Playlist",
-                                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                                                    style: TextStyle(fontSize: 18, color:currentplayprovider.Theme.text,fontWeight: FontWeight.w500),
                                                   ),
                                                   onTap: () async{
                                                     // Handle creating a new playlist
@@ -371,43 +371,92 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                     context: context,
                                     builder: (context){
                                      return Padding(
-                                       padding: const EdgeInsets.all(16.0),
+                                       padding: const EdgeInsets.symmetric(horizontal: 16,vertical: 20),
                                        child: Column(
-                                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                        mainAxisSize: MainAxisSize.min,
                                          crossAxisAlignment: CrossAxisAlignment.start,
                                          children: [
-                                           Padding(
-                                             padding: const EdgeInsets.only(top: 2.0,bottom: 8.0),
-                                             child: Text("Sleep Timer",textAlign:TextAlign.center,style: TextStyle(fontSize: 23,color: currentplayprovider.Theme.tab),),
-                                           ),
-                                           Padding(
-                                             padding: const EdgeInsets.all(8.0),
-                                             child: Text("Turn Off",style: TextStyle(fontSize: 18,color: currentplayprovider.Theme.text),),
-                                           ),
-                                           Padding(
-                                             padding: const EdgeInsets.all(8.0),
-                                             child: Text("10 Minutes",style: TextStyle(fontSize: 18,color:currentplayprovider.Theme.text),),
-                                           ),
-                                           Padding(
-                                             padding: const EdgeInsets.all(8.0),
-                                             child: Text("20 Minutes",style: TextStyle(fontSize: 18,color: currentplayprovider.Theme.text),),
-                                           ),
-                                           Padding(
-                                             padding: const EdgeInsets.all(8.0),
-                                             child: Row(
-                                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                               children: [
-                                                 Text("Custom",style: TextStyle(fontSize: 18,color: currentplayprovider.Theme.text),),
-                                                 Icon(CupertinoIcons.right_chevron)
-                                               ],
+                                           // Title
+                                           Center(
+                                             child: Text(
+                                               "Sleep Timer",
+                                               style: TextStyle(
+                                                 fontSize: 23,
+                                                 fontWeight: FontWeight.bold,
+                                                 color: currentplayprovider.Theme.tab,
+                                               ),
                                              ),
                                            ),
+                                           const SizedBox(height: 16),
+                                           // Turn Off Timer Option
+                                           _buildOption(
+                                             context,
+                                             label: "Turn Off",
+                                             icon: Icons.cancel,
+                                             onTap: () {
+                                               currentplayprovider.stopTimer();
+                                               Navigator.pop(context);
+                                               showToast("Sleep Timer turned off");
+                                             },
+                                           ),
 
+                                           // Predefined Timer Options
+                                           _buildOption(
+                                             context,
+                                             label: "10 Minutes",
+                                             icon: Icons.timer,
+                                             onTap: () {
+                                               currentplayprovider.starttimer(10);
+                                               Navigator.pop(context);
+                                               showToast("Sleep Timer set to 10 Minutes");
+                                             },
+                                           ),
+                                           _buildOption(
+                                             context,
+                                             label: "20 Minutes",
+                                             icon: Icons.timer,
+                                             onTap: () {
+                                               currentplayprovider.starttimer(20);
+                                               Navigator.pop(context);
+                                               showToast("Sleep Timer set to 20 Minutes");
+                                             },
+                                           ),
+                                           // Custom Timer Option
+                                           _buildOption(
+                                             context,
+                                             label: "Custom",
+                                             icon: CupertinoIcons.time,
+                                             trailingIcon: CupertinoIcons.right_chevron,
+                                             onTap: () async {
+                                               Navigator.pop(context);
+                                               int? customMinutes = await showMinutesInputDialog(context);
+                                               if (customMinutes != null) {
+                                                 currentplayprovider.starttimer(customMinutes);
+                                                 Navigator.pop(context);
+                                                 showToast("Sleep Timer set to $customMinutes Minutes");
+                                               }
+                                             },
+                                           ),
                                          ],
                                        ),
                                      );
                                     });
-                              }, icon: Icon(CupertinoIcons.clock_solid,color: currentplayprovider.Theme.tab,size: 30,)),
+                              }, icon: Column(
+                                children: [
+                                  Icon(CupertinoIcons.clock_solid,color: currentplayprovider.Theme.tab,size: 30,),
+                                  currentplayprovider.timer!=null?ValueListenableBuilder<int>(
+                                      valueListenable: currentplayprovider.secondsRemaining,
+                                      builder:(context,value,child)
+                                      {
+                                        int minutes=value~/60;
+                                        int seconds=value%60;
+                                        String time="$minutes:${seconds.toString().padLeft(2,'0')}";
+                                        return Text("$time",style: TextStyle(color: currentplayprovider.Theme.tab),);
+                                      }
+
+                                  ):SizedBox.shrink()
+                                ],
+                              )),
                           ],),
                         )
 
@@ -446,6 +495,86 @@ class _PlayerScreenState extends State<PlayerScreen> {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     return "${twoDigits(duration.inMinutes)}:${twoDigits(duration.inSeconds.remainder(60))}";
   }
+  // ✅ Reusable function to create list options
+  Widget _buildOption(BuildContext context,
+      {required String label, required IconData icon, IconData? trailingIcon, required VoidCallback onTap}) {
+
+    final colortheme=Provider.of<currentplay>(context);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 30, color:colortheme.Theme.tab ),
+                const SizedBox(width: 12),
+                Text(
+                  label,
+                  style: TextStyle(fontSize: 18, color:colortheme.Theme.text ),
+                ),
+              ],
+            ),
+            if (trailingIcon != null) Icon(trailingIcon, size: 20, color:colortheme.Theme.tab),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+  // ✅ Custom Input Dialog for Custom Timer
+  Future<int?> showMinutesInputDialog(BuildContext context) async {
+    TextEditingController controller = TextEditingController();
+
+    return await showDialog<int>(
+      context: context,
+      builder: (BuildContext context) {
+        final colortheme=Provider.of<currentplay>(context);
+        return AlertDialog(
+          backgroundColor: colortheme.Theme.background,
+          title: Text("Enter Minutes",style: TextStyle(color: colortheme.Theme.tab),),
+          content: TextField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+
+            decoration: InputDecoration(
+              hintText: "Enter minutes",
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, null);
+              },
+              child: Text("Cancel",style: TextStyle(color: colortheme.Theme.text),),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colortheme.Theme.tab
+              ),
+              onPressed: () {
+                int? minutes = int.tryParse(controller.text.trim());
+                if (minutes != null && minutes > 0) {
+                  Navigator.pop(context, minutes);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Please enter a valid number")),
+                  );
+                }
+              },
+              child:Text("Start",style: TextStyle(color: colortheme.Theme.background),),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 }
 
 
