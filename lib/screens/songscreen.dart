@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:music_app_2/main.dart';
+import 'package:music_app_2/screens/playlistscreen.dart';
 import 'package:provider/provider.dart';
 import 'package:music_app_2/provider_classes.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -286,7 +287,79 @@ class _PlayerScreenState extends State<PlayerScreen> {
                             IconButton(onPressed: (){}, icon: Icon(Icons.equalizer,color: currentplayprovider.Theme.tab,size: 30,)),
                             IconButton(onPressed: (){
                             //playlist add
+                              showModalBottomSheet(
+                                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                                  context: context,
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.vertical(top: Radius.circular(16))
+                                  ),
+                                  builder: (context){
+                                    return Padding(padding: EdgeInsets.all(16.0),
+                                    child: Column(
+                                      //mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text("Add to Playlist",style: TextStyle(
+                                              color: currentplayprovider.Theme.tab,fontSize: 30,fontWeight: FontWeight.bold),),
+                                        ),
 
+                                        Flexible(
+                                          child: ListView.separated(
+                                            shrinkWrap: true,
+                                              separatorBuilder: (_,_)=>const Divider(),
+                                              itemCount: playlist.playlists.length+1,
+                                            itemBuilder: (context, index) {
+                                              if (index < playlist.playlists.length) {
+                                                return ListTile(
+                                                  leading: ClipRRect(
+                                                    borderRadius: BorderRadius.circular(12),
+                                                    child: Image.asset(
+                                                      "assets/music.png",
+                                                      width: 50,
+                                                      height: 50,
+                                                      fit: BoxFit.cover,
+                                                    ),
+                                                  ),
+                                                  title: Text(
+                                                    playlist.playlists[index],
+                                                    style: TextStyle(
+                                                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                                                      fontSize: 18,
+                                                    ),
+                                                  ),
+                                                  onTap: () async{
+                                                    // Handle playlist selection
+                                                    Box<Song> box=await Hive.box<Song>(playlist.playlists[index]);
+                                                    addSongtoplaylist(currentplayprovider.song, box);
+                                                    showToast("${currentplayprovider.song.title} was added in ${playlist.playlists[index]}");
+                                                    print("${playlist.playlists[index]}");
+                                                    Navigator.pop(context);
+                                                  },
+                                                );
+                                              } else {
+                                                return ListTile(
+                                                  leading: Icon(Icons.add, size: 40, color: Theme.of(context).primaryColor),
+                                                  title: Text(
+                                                    "New Playlist",
+                                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                                                  ),
+                                                  onTap: () async{
+                                                    // Handle creating a new playlist
+                                                   showPlaylistDialog(context,song: currentplayprovider.song);
+
+                                                  },
+                                                );
+                                              }
+                                            },
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                    );
+                                  });
 
                             }, icon: Icon(Icons.add_to_photos,color: currentplayprovider.Theme.tab,size: 30,)),
                               IconButton(onPressed: (){
@@ -409,6 +482,7 @@ void addSongtoplaylist(Song song,var songbox) {
     publisher: song.publisher,
     genre: song.genre
   );
+
 
   songbox.add(newSong); // Add the new song
   print("New song added: ${song.title} songlist : $songList");

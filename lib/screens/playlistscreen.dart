@@ -155,10 +155,10 @@ class _PlaylistscreenState extends State<Playlistscreen> {
 
 
 //ask to enter the playlist name
-void showPlaylistDialog(context) {
+Future<void> showPlaylistDialog(context,{Song? song}) async{
   TextEditingController playlistController = TextEditingController();
   final playlist=Provider.of<playlistprovider>(context,listen: false);
-  showDialog(
+   showDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
@@ -180,6 +180,13 @@ void showPlaylistDialog(context) {
               if (playlistName.isNotEmpty) {
                 // Handle playlist creation logic here
                playlist.addplaylist(playlistController.text);
+               if(song != null)
+                 {
+                   Box<Song> box=await Hive.openBox(playlistName);
+                   addSongtoplaylist(song, box);
+                   box.close();
+                   showToast("song added to $playlistName");
+                 }
                 Navigator.pop(context); // Close the dialog
               }
             },
@@ -189,6 +196,8 @@ void showPlaylistDialog(context) {
       );
     },
   );
+
+
 }
 
 
@@ -218,7 +227,7 @@ class _playlistsongsState extends State<playlistsongs> {
             snap: false,
             automaticallyImplyLeading: true,
             leading: IconButton(
-              icon: Icon(Icons.arrow_back_ios, color: Colors.white, size: 24), // Custom icon
+              icon: Icon(Icons.arrow_back_ios, color: colortheme.theme.text, size: 24), // Custom icon
               onPressed: () {
                 Navigator.pop(context); // Navigates back
               },
@@ -262,53 +271,68 @@ class _playlistsongsState extends State<playlistsongs> {
                   (context, index){
                     if(index<songProvider.Songlist.length)
                       {
-                        if(currentplayprovider.song.path == songProvider.Songlist[index].path)
-                          return GestureDetector(
-                            onTap: (){
-                              currentplayprovider.changesong(songProvider.Songlist[index]);
+
+                          return Dismissible(
+                            key: Key(songProvider.Songlist[index].path),
+                            direction: DismissDirection.endToStart,
+                            background: Container(
+                              color: Colors.red,
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.symmetric(horizontal:20 ),
+                              child: const Icon(Icons.delete,color: Colors.white,),
+                            ),
+                            onDismissed: (direction){
+                              songProvider.deletesong(songProvider.Songlist[index]);
                             },
-                            child: ListTile(
-                              title: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    width: 70,
-                                    height: 70,
-                                    decoration: BoxDecoration(
-                                        color: Colors.black,
-                                        borderRadius: BorderRadius.circular(50)
+                            child: GestureDetector(
+                              onTap: (){
+                                currentplayprovider.changesong(songProvider.Songlist[index]);
+                              },
+                              child: ListTile(
+                                title: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      width: 70,
+                                      height: 70,
+                                      decoration: BoxDecoration(
+                                          color: currentplayprovider.song.path == songProvider.Songlist[index].path?Colors.black:Colors.transparent,
+                                          borderRadius: currentplayprovider.song.path == songProvider.Songlist[index].path?BorderRadius.circular(50):BorderRadius.circular(20),
+                                      ),
+                                      child: Padding(
+                                        padding: currentplayprovider.song.path == songProvider.Songlist[index].path?EdgeInsets.all(16.0):EdgeInsets.all(2.0),
+                                        child: ClipRRect(
+                                            borderRadius: currentplayprovider.song.path == songProvider.Songlist[index].path?BorderRadius.circular(90):BorderRadius.circular(20),
+                                            child: buildSongImage(base64Image:songProvider.Songlist[index].Image,width: currentplayprovider.song.path == songProvider.Songlist[index].path?50:100,height: currentplayprovider.song.path == songProvider.Songlist[index].path?50:100)),
+                                      ),
                                     ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(16.0),
-                                      child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(90),
-                                          child: buildSongImage(base64Image:songProvider.Songlist[index].Image,width: 50,height: 50)),
-                                    ),
-                                  ),
-                                  SizedBox(width: 10,),
-                                  Expanded(child: Text("${songProvider.Songlist[index].title}",style: TextStyle(color: currentplayprovider.Theme.tab),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,))
-                                ],
-                              ),),
+                                    SizedBox(width: 10,),
+                                    Expanded(child: Text("${songProvider.Songlist[index].title}",style: TextStyle(color: currentplayprovider.song.path == songProvider.Songlist[index].path?currentplayprovider.Theme.tab:colortheme.theme.text),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,))
+                                  ],
+                                ),),
+                            ),
                           );
-                        else
-                          return GestureDetector(
-                            onTap: (){
-                              currentplayprovider.changesong(songProvider.Songlist[index]);
-                            },
-                            child: ListTile(
-                              title: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  ClipRRect(
-                                      borderRadius: BorderRadius.circular(10),
-                                      child: buildSongImage(base64Image:songProvider.Songlist[index].Image)),
-                                  SizedBox(width: 10,),
-                                  Expanded(child: Text("${songProvider.Songlist[index].title}",style: TextStyle(color: colortheme.theme.text),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,))
-                                ],
-                              ),),
-                          );
+                        // else
+                        //   return GestureDetector(
+                        //     onTap: (){
+                        //       currentplayprovider.changesong(songProvider.Songlist[index]);
+                        //     },
+                        //     child: ListTile(
+                        //       title: Row(
+                        //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        //         crossAxisAlignment: CrossAxisAlignment.center,
+                        //         children: [
+                        //           ClipRRect(
+                        //               borderRadius: BorderRadius.circular(10),
+                        //               child: buildSongImage(base64Image:songProvider.Songlist[index].Image)),
+                        //           SizedBox(width: 10,),
+                        //           Expanded(child: Text("${songProvider.Songlist[index].title}",style: TextStyle(color: colortheme.theme.text),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,))
+                        //         ],
+                        //       ),),
+                        //   );
+
+
                       }
                        else
                          return GestureDetector(
