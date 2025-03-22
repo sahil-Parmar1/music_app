@@ -22,129 +22,263 @@ class _PlaylistscreenState extends State<Playlistscreen> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          GestureDetector(
-            onTap: (){
-              showPlaylistDialog(context);
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: colortheme.theme.tab,
-                  borderRadius: BorderRadius.circular(20)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5.0),
+            child: Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Material(
+                color: colortheme.theme.background.withOpacity(0.8),
+                borderRadius: BorderRadius.circular(16), // Ensures ripple effect is clipped
+                child: InkWell(
+                  onTap: () {
+                    // showPlaylistDialog(context);
+                  },
+                  borderRadius: BorderRadius.circular(16),
+                 splashColor: colortheme.theme.tab.withOpacity(0.2),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.add, color: colortheme.theme.tab.withOpacity(0.8), size: 30),
+                        SizedBox(width: 12),
+                        Text(
+                          "Add Playlist",
+                          style: TextStyle(
+                            color: colortheme.theme.text,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                child: Center(child: Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Column(
-                  children: [
-                    Icon(Icons.add,color: colortheme.theme.text,),
-                    Text("add Playlist",style: TextStyle(color: colortheme.theme.text),),
-                  ],
-                            ),
-                )),),
+              ),
             ),
           ),
+
+
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
             child: GestureDetector(
-              onTap: (){
-                Box<Song> box=Hive.box<Song>('likedsongs');
-                print("likedsongs is tapped");
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context)=>ChangeNotifierProvider(
-                        create: (context)=>Songlistprovider(box)
-                        ,child: playlistsongs(nameofplaylist: "Liked Songs"))));
+              onTap: () async{
+                await Hive.openBox<Song>('likedsongs');
+                Box<Song> box = Hive.box<Song>('likedsongs');
+                print("Liked Songs is tapped");
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ChangeNotifierProvider(
+                      create: (context) => Songlistprovider(box),
+                      child: playlistsongs(nameofplaylist: "Liked Songs", box: "likedsongs"),
+                    ),
+                  ),
+                );
               },
-              child: Container(
-                decoration: BoxDecoration(
-                    color: colortheme.theme.tab,
-                    borderRadius: BorderRadius.circular(20)
+              child: Card(
+                elevation: 5, // Adds a shadow effect for depth
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                child: Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Hero(
-                        tag: "Liked Songs",
-                        child: Image.asset("assets/music.png",width: 80,
-                        height: 80,
-                          fit: BoxFit.cover,
-                        ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    splashColor: Colors.grey.withOpacity(0.2),
+                    child: Container(
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: colortheme.theme.background.withOpacity(0.8),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        children: [
+                          Hero(
+                            tag: "Liked Songs",
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.asset(
+                                "assets/music.png",
+                                width: 70,
+                                height: 70,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 16), // Add spacing
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "🩷 Liked Songs",
+                                  style: TextStyle(
+                                    color: colortheme.theme.text,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                SizedBox(height: 4),
+                                FutureBuilder<int>(
+                                  future: playlist.calculatesongs("likedsongs"),
+                                  builder: (context, snapshot) {
+                                    String text;
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                      text = "Calculating...";
+                                    } else if (snapshot.hasError) {
+                                      text = "0 songs";
+                                    } else {
+                                      text = "${snapshot.data} songs";
+                                    }
+
+                                    return Text(
+                                      text,
+                                      style: TextStyle(
+                                        color: colortheme.theme.text.withOpacity(0.7),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(Icons.arrow_forward_ios, color: colortheme.theme.text.withOpacity(0.6), size: 18),
+                        ],
                       ),
                     ),
-                    Column(
-                      children: [
-                        Text("🩷 Liked Songs",style: TextStyle(color: colortheme.theme.text,fontSize: 20,fontWeight: FontWeight.bold),),
-                      ],
-                    )
-                  ],
+                  ),
                 ),
-
-               ),
+              ),
             ),
           ),
-           Wrap(
+
+          Wrap(
              spacing: 1000.0,
              runSpacing: 1.0,
              children: playlist.playlists.map((playlistitem){
+                String boxname=playlistitem;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+                  child: GestureDetector(
+                    onTap: () async {
+                      await Hive.openBox<Song>(playlistitem);
+                      Box<Song> box = Hive.box<Song>(playlistitem);
+                      print("$playlistitem is tapped");
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChangeNotifierProvider(
+                            create: (context) => Songlistprovider(box),
+                            child: playlistsongs(nameofplaylist: playlistitem, box: playlistitem),
+                          ),
+                        ),
+                      );
+                    },
+                    child: Card(
+                      elevation: 5, // Adds a shadow effect for depth
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Dismissible(
+                          key: Key(playlistitem),
+                          direction: DismissDirection.endToStart,
+                          onDismissed: (direction) {
+                            playlist.deleteplaylist(playlistitem);
+                          },
+                          background: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              color: Colors.red,
+                            ),
+                            alignment: Alignment.centerRight,
+                            padding: EdgeInsets.symmetric(horizontal: 20),
+                            child: const Icon(Icons.delete, color: Colors.white),
+                          ),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(16),
+                            splashColor: Colors.grey.withOpacity(0.2),
+                            child: Container(
+                              padding: EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: colortheme.theme.background.withOpacity(0.8),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Row(
+                                children: [
+                                  Hero(
+                                    tag: "$playlistitem",
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Image.asset(
+                                        "assets/music.png",
+                                        width: 70,
+                                        height: 70,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 16), // Add spacing
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          playlistitem,
+                                          style: TextStyle(
+                                            color: colortheme.theme.text,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        SizedBox(height: 4),
+                                        FutureBuilder<int>(
+                                          future: playlist.calculatesongs(boxname),
+                                          builder: (context, snapshot) {
+                                            String text;
+                                            if (snapshot.connectionState == ConnectionState.waiting) {
+                                              text = "Calculating...";
+                                            } else if (snapshot.hasError) {
+                                              text = "0 songs";
+                                            } else {
+                                              text = "${snapshot.data} songs";
+                                            }
 
-               return Padding(
-                 padding: const EdgeInsets.all(10.0),
-                 child: GestureDetector(
-                   onTap: ()async{
-                     await Hive.openBox<Song>(playlistitem);
-                     Box<Song> box=Hive.box<Song>(playlistitem);
-                     print("$playlistitem is tapped");
-                     Navigator.push(context,
-                         MaterialPageRoute(builder: (context)=>ChangeNotifierProvider(
-                             create: (context)=>Songlistprovider(box)
-                             ,child: playlistsongs(nameofplaylist:playlistitem))));
-                   },
-                   child: Container(
-                     decoration: BoxDecoration(
-                         color: colortheme.theme.tab,
-                         borderRadius: BorderRadius.circular(20)
-                     ),
-                     child: Dismissible(
-                       key: Key(playlistitem),
-                       direction: DismissDirection.endToStart,
-                       onDismissed: (direction){
-                         playlist.deleteplaylist(playlistitem);
-                       },
-                       background: Container(
-                         decoration: BoxDecoration(
-                           borderRadius: BorderRadius.circular(20),
-                           color: Colors.red,
-                         ),
+                                            return Text(
+                                              text,
+                                              style: TextStyle(
+                                                color: colortheme.theme.text.withOpacity(0.7),
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w400,
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Icon(Icons.arrow_forward_ios, color: colortheme.theme.text.withOpacity(0.6), size: 18),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
 
-                         alignment: Alignment.centerRight,
-                         padding: EdgeInsets.symmetric(horizontal: 20),
-                         child: const Icon(Icons.delete,color: Colors.white,),
-                       ),
-                       child: Row(
-                         children: [
-                           Padding(
-                             padding: const EdgeInsets.all(8.0),
-                             child: Hero(
-                               tag: "$playlistitem",
-                               child: Image.asset("assets/music.png",width: 80,
-                                 height: 80,
-                                 fit: BoxFit.cover,
-                               ),
-                             ),
-                           ),
-                           Column(
-                             children: [
-                               Text("${playlistitem}",style: TextStyle(color: colortheme.theme.text,fontSize: 20,fontWeight: FontWeight.bold),),
-                             ],
-                           )
-                         ],
-                       ),
-                     ),
-
-                   ),
-                 ),
-               );
              }).toList(),
            )
         ],
@@ -204,7 +338,8 @@ Future<void> showPlaylistDialog(context,{Song? song}) async{
 //playlistsongs screen
 class playlistsongs extends StatefulWidget {
  String nameofplaylist;
-  playlistsongs({super.key,required this.nameofplaylist});
+ String box;
+  playlistsongs({super.key,required this.nameofplaylist,required this.box});
 
   @override
   State<playlistsongs> createState() => _playlistsongsState();
@@ -269,10 +404,7 @@ class _playlistsongsState extends State<playlistsongs> {
           SliverList(
             delegate: SliverChildBuilderDelegate(
                   (context, index){
-                    if(index<songProvider.Songlist.length)
-                      {
-
-                          return Dismissible(
+                     return Dismissible(
                             key: Key(songProvider.Songlist[index].path),
                             direction: DismissDirection.endToStart,
                             background: Container(
@@ -285,7 +417,9 @@ class _playlistsongsState extends State<playlistsongs> {
                               songProvider.deletesong(songProvider.Songlist[index]);
                             },
                             child: GestureDetector(
-                              onTap: (){
+                              onTap: ()async{
+                                Box<Song> box=Hive.box<Song>(widget.box);
+                                currentplayprovider.changebox(box);
                                 currentplayprovider.changesong(songProvider.Songlist[index]);
                               },
                               child: ListTile(
@@ -313,63 +447,10 @@ class _playlistsongsState extends State<playlistsongs> {
                                 ),),
                             ),
                           );
-                        // else
-                        //   return GestureDetector(
-                        //     onTap: (){
-                        //       currentplayprovider.changesong(songProvider.Songlist[index]);
-                        //     },
-                        //     child: ListTile(
-                        //       title: Row(
-                        //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        //         crossAxisAlignment: CrossAxisAlignment.center,
-                        //         children: [
-                        //           ClipRRect(
-                        //               borderRadius: BorderRadius.circular(10),
-                        //               child: buildSongImage(base64Image:songProvider.Songlist[index].Image)),
-                        //           SizedBox(width: 10,),
-                        //           Expanded(child: Text("${songProvider.Songlist[index].title}",style: TextStyle(color: colortheme.theme.text),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,))
-                        //         ],
-                        //       ),),
-                        //   );
 
-
-                      }
-                       else
-                         return GestureDetector(
-                           onTap: (){
-
-                           },
-                           child: ListTile(
-                             title: Padding(
-                               padding: const EdgeInsets.symmetric(horizontal: 16,vertical:8 ),
-                               child: Card(
-                                 shape: RoundedRectangleBorder(
-                                   borderRadius: BorderRadius.circular(15)
-                                 ),
-                                 color: colortheme.theme.background,
-                                 child: Container(
-                                   padding: EdgeInsets.all(16),
-                                   width: 60,
-                                   height: 60,
-                                   child: Row(
-                                     mainAxisAlignment: MainAxisAlignment.center,
-                                     crossAxisAlignment: CrossAxisAlignment.center,
-                                     children: [
-                                       ClipRRect(
-                                           borderRadius: BorderRadius.circular(10),
-                                           child: Icon(Icons.add,size: 35,color: colortheme.theme.tab,)
-                                        ),
-                                       SizedBox(width: 10,),
-                                       Text("Add Song",style: TextStyle(color: colortheme.theme.text),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,)
-                                     ],
-                                   ),
-                                 ),
-                               ),
-                             ),),
-                         );
 
               },
-              childCount: songProvider.Songlist.length+1,
+              childCount: songProvider.Songlist.length,
             )
           ),
 

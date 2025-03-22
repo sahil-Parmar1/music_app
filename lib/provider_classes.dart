@@ -120,6 +120,12 @@ class currentplay extends ChangeNotifier
       });
 
   }
+
+  void changebox(Box<Song> newbox)async
+  {
+    songBox=newbox;
+    notifyListeners();
+  }
   final player=AudioPlayer();
   ValueNotifier<bool> isplaying=ValueNotifier(false);
 
@@ -180,7 +186,7 @@ class currentplay extends ChangeNotifier
 
   //stop timer
   void stopTimer(){
-    if(_timer!=null)
+    if(_timer != null)
       {
         _timer!.cancel();
         _timer=null;
@@ -329,10 +335,12 @@ class playlistprovider extends ChangeNotifier
     showToast("$playlistname was deleted");
     _loadplaylists();
   }
-  // Future<int> calculatesongs(String boxname)async{
-  //
-  //     return box.values.length;
-  //   }
+  Future<int> calculatesongs(String boxname)async{
+    Box<Song> box=await Hive.openBox(boxname);
+      int len=box.values.length;
+      box.close();
+      return len;
+    }
 }
 
 

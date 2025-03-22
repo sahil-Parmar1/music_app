@@ -46,7 +46,10 @@ class _SongState extends State<SongScreen> {
           itemBuilder: (context,index){
             if(currentplayprovider.song.path == songProvider.Songlist[index].path)
               return GestureDetector(
-                onTap: (){
+                onTap: ()async{
+
+                  Box<Song> box=Hive.box<Song>("songs");
+                  currentplayprovider.changebox(box);
                   currentplayprovider.changesong(songProvider.Songlist[index]);
 
                 },
@@ -76,7 +79,9 @@ class _SongState extends State<SongScreen> {
               );
               else
             return GestureDetector(
-              onTap: (){
+              onTap: ()async{
+                Box<Song> box=Hive.box<Song>("songs");
+                currentplayprovider.changebox(box);
                 currentplayprovider.changesong(songProvider.Songlist[index]);
                 },
               child: ListTile(
