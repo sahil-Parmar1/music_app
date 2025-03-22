@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:music_app_2/main.dart';
+import 'package:music_app_2/screens/albumscreen.dart';
 import 'package:music_app_2/screens/playlistscreen.dart';
 import 'package:provider/provider.dart';
 import 'package:music_app_2/provider_classes.dart';
@@ -33,6 +34,7 @@ class _SongState extends State<SongScreen> {
   {
     await fetchSongslist(context);
     await checkfordelete(context);
+    await loadAlbum(context);
   }
   @override
   Widget build(BuildContext context) {

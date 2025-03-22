@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:music_app_2/main.dart';
+import 'package:music_app_2/screens/albumscreen.dart';
+import 'package:music_app_2/screens/artistscreen.dart';
 import 'package:music_app_2/screens/playlistscreen.dart';
 import 'package:music_app_2/screens/songscreen.dart';
 import 'package:provider/provider.dart';
@@ -222,7 +224,12 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
              SongScreen(),
               Playlistscreen(),
-              Album(),
+             ChangeNotifierProvider(create: (context)=>playlistprovider("album"),
+             child: Album(),
+             ),
+              ChangeNotifierProvider(create: (context)=>playlistprovider("artist"),
+                child: Artistscreen(),
+              ),
             ],
           ),
       ),
@@ -309,18 +316,5 @@ class _HomeScreenState extends State<HomeScreen> {
 
 
 
-class Album extends StatefulWidget {
-  const Album({super.key});
-
-  @override
-  State<Album> createState() => _AlbumState();
-}
-
-class _AlbumState extends State<Album> {
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text("Playlist"),);
-  }
-}
 
 

@@ -312,18 +312,17 @@ class playlistprovider extends ChangeNotifier
 {
   List<String> playlists=[];
   String key="playlists";
-  playlistprovider(){
+  playlistprovider(String newkey){
+      key=newkey;
     _loadplaylists();
   }
   void _loadplaylists()async
   {
+
     playlists=await getfromShared_preference(key: key)??[];
     notifyListeners();
   }
-  void changekey(String newkey)async
-  {
-    key=newkey;
-   }
+
   void addplaylist(String playlistname)async
   {
     List<String> newplaylist=await getfromShared_preference(key: key)??[];

@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:music_app_2/screens/albumscreen.dart';
+import 'package:music_app_2/screens/artistscreen.dart';
 import 'package:music_app_2/store/songs.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,7 +29,7 @@ void main()async
         ChangeNotifierProvider(create: (context) =>Themeprovider()),
         ChangeNotifierProvider(create: (context) =>Songlistprovider(songBox)),
         ChangeNotifierProvider(create: (context) =>currentplay(songBox)),
-        ChangeNotifierProvider(create: (context)=>playlistprovider(),
+        ChangeNotifierProvider(create: (context)=>playlistprovider("playlists"),
           child: Playlistscreen(),
         ),
       ],
@@ -179,6 +181,8 @@ Future<void> fetchSongslist(context) async {
        }
        print("all song are fecthed....");
   }
+ await loadAlbum(context);
+  await loadArtist(context);
 }
 
 ///fectching songs

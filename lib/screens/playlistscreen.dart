@@ -101,12 +101,29 @@ class _PlaylistscreenState extends State<Playlistscreen> {
                             tag: "Liked Songs",
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(12),
-                              child: Image.asset(
-                                "assets/music.png",
-                                width: 70,
-                                height: 70,
-                                fit: BoxFit.cover,
-                              ),
+                              child: FutureBuilder(
+                                  future: loadFirstImage("likedsongs"),
+                                  builder:(context,snapshot){
+                                    bool ispresent;
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                      ispresent=false;
+                                    } else if (snapshot.hasError) {
+                                      ispresent=false;
+                                    } else {
+                                      ispresent=true;
+                                    }
+                                    return ispresent?snapshot.data!=null?buildSongImage(base64Image: snapshot.data,width: 70,height: 70):Image.asset(
+                                      "assets/music.png",
+                                      width: 70,
+                                      height: 70,
+                                      fit: BoxFit.cover,
+                                    ):Image.asset(
+                                      "assets/music.png",
+                                      width: 70,
+                                      height: 70,
+                                      fit: BoxFit.cover,
+                                    );
+                                  }),
                             ),
                           ),
                           SizedBox(width: 16), // Add spacing
@@ -219,12 +236,29 @@ class _PlaylistscreenState extends State<Playlistscreen> {
                                     tag: "$playlistitem",
                                     child: ClipRRect(
                                       borderRadius: BorderRadius.circular(12),
-                                      child: Image.asset(
-                                        "assets/music.png",
-                                        width: 70,
-                                        height: 70,
-                                        fit: BoxFit.cover,
-                                      ),
+                                      child: FutureBuilder(
+                                          future: loadFirstImage(playlistitem),
+                                          builder:(context,snapshot){
+                                            bool ispresent;
+                                            if (snapshot.connectionState == ConnectionState.waiting) {
+                                              ispresent=false;
+                                            } else if (snapshot.hasError) {
+                                              ispresent=false;
+                                            } else {
+                                              ispresent=true;
+                                            }
+                                            return ispresent?snapshot.data!=null?buildSongImage(base64Image: snapshot.data,width: 70,height: 70):Image.asset(
+                                              "assets/music.png",
+                                              width: 70,
+                                              height: 70,
+                                              fit: BoxFit.cover,
+                                            ):Image.asset(
+                                              "assets/music.png",
+                                              width: 70,
+                                              height: 70,
+                                              fit: BoxFit.cover,
+                                            );
+                                          }),
                                     ),
                                   ),
                                   SizedBox(width: 16), // Add spacing
@@ -413,10 +447,18 @@ class _playlistsongsState extends State<playlistsongs> {
               centerTitle: true, // Ensures title is centered properly
               title: Align(
                 alignment: Alignment.bottomCenter, // Centered horizontally at the bottom
-                child: Text(
-                  widget.nameofplaylist,
-                  style: TextStyle(color: colortheme.theme.text),
-                ),
+                child: SizedBox(
+                  width: double.infinity, // Ensures it takes full width
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      widget.nameofplaylist,
+                      style: TextStyle(color: colortheme.theme.text),
+                    ),
+                  ),
+                )
+
+
               ),
             ),
 
@@ -481,3 +523,12 @@ class _playlistsongsState extends State<playlistsongs> {
 }
 
 
+
+
+//function to load frist image of list
+Future<String?> loadFirstImage(String boxName) async {
+  var box = Hive.isBoxOpen(boxName)
+      ? Hive.box<Song>(boxName)
+      : await Hive.openBox<Song>(boxName);
+  return box.values.isNotEmpty ? box.values.first.Image : null;
+}
