@@ -336,9 +336,14 @@ class playlistprovider extends ChangeNotifier
     _loadplaylists();
   }
   Future<int> calculatesongs(String boxname)async{
-    Box<Song> box=await Hive.openBox(boxname);
-      int len=box.values.length;
-      box.close();
+    Box<Song> box;
+    bool isBoxOpen = Hive.isBoxOpen(boxname);
+    if (isBoxOpen) {
+     box=Hive.box<Song>(boxname);
+    } else {
+    box=await Hive.openBox<Song>(boxname);
+    }
+     int len=box.values.length;
       return len;
     }
 }

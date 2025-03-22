@@ -34,7 +34,7 @@ class _PlaylistscreenState extends State<Playlistscreen> {
                 borderRadius: BorderRadius.circular(16), // Ensures ripple effect is clipped
                 child: InkWell(
                   onTap: () {
-                    // showPlaylistDialog(context);
+                    showPlaylistDialog(context);
                   },
                   borderRadius: BorderRadius.circular(16),
                  splashColor: colortheme.theme.tab.withOpacity(0.2),
@@ -292,15 +292,26 @@ class _PlaylistscreenState extends State<Playlistscreen> {
 Future<void> showPlaylistDialog(context,{Song? song}) async{
   TextEditingController playlistController = TextEditingController();
   final playlist=Provider.of<playlistprovider>(context,listen: false);
+  final colortheme=Provider.of<Themeprovider>(context,listen: false);
    showDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: const Text("Enter Playlist Name"),
+        title: Text("Create New Playlist",style: TextStyle(color:  colortheme.theme.tab.withOpacity(0.8),fontSize: 20,fontWeight: FontWeight.bold),),
+        backgroundColor: colortheme.theme.background,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
         content: TextField(
           controller: playlistController,
-          decoration: const InputDecoration(hintText: "Playlist Name"),
+          decoration: InputDecoration(hintText: "Enter Playlist Name",hintStyle: TextStyle(
+              color:  colortheme.theme.text.withOpacity(0.8)),
+                filled: false,
+            fillColor: colortheme.theme.text.withOpacity(0.1)
+          ),
+        style: TextStyle(
+          color: colortheme.theme.tab
         ),
+        ),
+
         actions: [
           TextButton(
             onPressed: () {
@@ -308,7 +319,10 @@ Future<void> showPlaylistDialog(context,{Song? song}) async{
             },
             child: const Text("Cancel"),
           ),
-          TextButton(
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colortheme.theme.tab
+            ),
             onPressed: () async{
               String playlistName = playlistController.text.trim();
               if (playlistName.isNotEmpty) {
@@ -316,15 +330,21 @@ Future<void> showPlaylistDialog(context,{Song? song}) async{
                playlist.addplaylist(playlistController.text);
                if(song != null)
                  {
-                   Box<Song> box=await Hive.openBox(playlistName);
+                   Box<Song> box;
+                   bool isBoxOpen = Hive.isBoxOpen(playlistName);
+                   if (isBoxOpen) {
+                     box=Hive.box<Song>(playlistName);
+                   } else {
+                     box=await Hive.openBox<Song>(playlistName);
+                   }
                    addSongtoplaylist(song, box);
-                   box.close();
                    showToast("song added to $playlistName");
                  }
                 Navigator.pop(context); // Close the dialog
               }
             },
-            child: const Text("Create"),
+            child: Text("Create",style: TextStyle(color: colortheme.theme.text),),
+
           ),
         ],
       );
