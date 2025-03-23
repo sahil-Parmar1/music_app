@@ -3,6 +3,7 @@ import 'package:music_app_2/main.dart';
 import 'package:music_app_2/screens/albumscreen.dart';
 import 'package:music_app_2/screens/artistscreen.dart';
 import 'package:music_app_2/screens/playlistscreen.dart';
+import 'package:music_app_2/screens/searchscreen.dart';
 import 'package:music_app_2/screens/songscreen.dart';
 import 'package:provider/provider.dart';
 import 'package:music_app_2/provider_classes.dart';
@@ -71,7 +72,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                        children: [
                          IconButton(
-                           onPressed: () {},
+                           onPressed: () {
+                             Navigator.push(context, 
+                             MaterialPageRoute(builder: (context)=>ChangeNotifierProvider(create: (context)=>searchProvider(),
+                             child: searchScreen(),
+                             ))
+                             );
+                           },
                            icon: Icon(CupertinoIcons.search, size: 20, color: colortheme.theme.text), // Smaller icon
                            padding: EdgeInsets.zero,
                            constraints: BoxConstraints(),
@@ -233,81 +240,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
       ),
-      bottomNavigationBar: currentplayprovider.song.path!=''?BottomAppBar(
-        height: 100,
-        color: Colors.transparent,
-        child: GestureDetector(
-          onTap: (){
-            print("tapped...");
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => PlayerScreen()),
-            );
-          },
-          child: Hero(
-            tag: 'player',
-            child: Container(
-              decoration: BoxDecoration(
-                color: currentplayprovider.Theme.background,
-                borderRadius: BorderRadius.circular(20)
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: buildSongImage(base64Image:currentplayprovider.song.Image)
-                    ),
-                    SizedBox(width: 5,),
-                    Expanded(child: Text("${currentplayprovider.song.title}",style:TextStyle(color: currentplayprovider.Theme.text,fontSize: 18),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,)),
-                    Row(
-                      children: [
-                        IconButton(onPressed: (){
-                          currentplayprovider.prevsong();
-                        }, icon: Icon(CupertinoIcons.backward_fill,color: currentplayprovider.Theme.tab,)),
-                        ValueListenableBuilder<bool>(
-                            valueListenable: currentplayprovider.isplaying,
-                            builder:(context,playing,child){
-                              return AnimatedSwitcher(
-                                duration: Duration(milliseconds: 500), // Smooth transition
-                                transitionBuilder: (Widget child, Animation<double> animation) {
-                                  return ScaleTransition(scale: animation, child: child);
 
-                                },
-                                child: IconButton(
-                                  key: ValueKey<bool>(playing), // Prevents unnecessary rebuilds
-                                  onPressed: () {
-                                    if (playing)
-                                      currentplayprovider.pause();
-                                    else
-                                      currentplayprovider.playSong();
-                                  },
-                                  icon: Icon(
-                                    playing
-                                        ? CupertinoIcons.pause_fill
-                                        : CupertinoIcons.play_arrow_solid,
-                                    color: currentplayprovider.Theme.tab,
-                                    size: 30,
-                                  ),
-                                ),
-                              );
-                            }),
 
-                        IconButton(onPressed: (){
-                                 currentplayprovider.nextsong();
-                        }, icon: Icon(CupertinoIcons.forward_fill,color: currentplayprovider.Theme.tab)),
-                      ],
-                    ),
-
-                  ],
-                ),
-              )
-            ),
-          ),
-        )
-      ):SizedBox.shrink(),
+      bottomNavigationBar: MiniPlayer(),
 
     );
   }
@@ -315,6 +250,106 @@ class _HomeScreenState extends State<HomeScreen> {
 
 
 
+
+
+
+//mini player
+class MiniPlayer extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final currentPlayProvider = Provider.of<currentplay>(context);
+
+    if (currentPlayProvider.song.path.isEmpty) return SizedBox.shrink();
+
+    return BottomAppBar(
+      height: 100,
+      color: Colors.transparent,
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => PlayerScreen()),
+          );
+        },
+        child: Hero(
+          tag: 'player',
+          child: Container(
+            decoration: BoxDecoration(
+              color: currentPlayProvider.Theme.background,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: buildSongImage(base64Image: currentPlayProvider.song.Image),
+                  ),
+                  SizedBox(width: 5),
+                  Expanded(
+                    child: Text(
+                      "${currentPlayProvider.song.title}",
+                      style: TextStyle(
+                        color: currentPlayProvider.Theme.text,
+                        fontSize: 18,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                      softWrap: true,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => currentPlayProvider.prevsong(),
+                        icon: Icon(
+                          CupertinoIcons.backward_fill,
+                          color: currentPlayProvider.Theme.tab,
+                        ),
+                      ),
+                      ValueListenableBuilder<bool>(
+                        valueListenable: currentPlayProvider.isplaying,
+                        builder: (context, playing, child) {
+                          return AnimatedSwitcher(
+                            duration: Duration(milliseconds: 500),
+                            transitionBuilder: (child, animation) =>
+                                ScaleTransition(scale: animation, child: child),
+                            child: IconButton(
+                              key: ValueKey<bool>(playing),
+                              onPressed: () => playing
+                                  ? currentPlayProvider.pause()
+                                  : currentPlayProvider.playSong(),
+                              icon: Icon(
+                                playing
+                                    ? CupertinoIcons.pause_fill
+                                    : CupertinoIcons.play_arrow_solid,
+                                color: currentPlayProvider.Theme.tab,
+                                size: 30,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      IconButton(
+                        onPressed: () => currentPlayProvider.nextsong(),
+                        icon: Icon(
+                          CupertinoIcons.forward_fill,
+                          color: currentPlayProvider.Theme.tab,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 
 

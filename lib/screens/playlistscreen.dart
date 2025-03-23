@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:music_app_2/global_scaffold.dart';
 import 'package:provider/provider.dart';
 import 'package:music_app_2/provider_classes.dart';
 import 'package:music_app_2/main.dart';
@@ -206,24 +207,24 @@ class _PlaylistscreenState extends State<Playlistscreen> {
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(16),
-                        child: Dismissible(
-                          key: Key(playlistitem),
-                          direction: DismissDirection.endToStart,
-                          onDismissed: (direction) {
-                            playlist.deleteplaylist(playlistitem);
-                          },
-                          background: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                              color: Colors.red,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          splashColor: Colors.grey.withOpacity(0.2),
+                          child: Dismissible(
+                            key: Key(playlistitem),
+                            direction: DismissDirection.endToStart,
+                            onDismissed: (direction) {
+                              playlist.deleteplaylist(playlistitem);
+                            },
+                            background: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                color: Colors.red,
+                              ),
+                              alignment: Alignment.centerRight,
+                              padding: EdgeInsets.symmetric(horizontal: 20),
+                              child: const Icon(Icons.delete, color: Colors.white),
                             ),
-                            alignment: Alignment.centerRight,
-                            padding: EdgeInsets.symmetric(horizontal: 20),
-                            child: const Icon(Icons.delete, color: Colors.white),
-                          ),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(16),
-                            splashColor: Colors.grey.withOpacity(0.2),
                             child: Container(
                               padding: EdgeInsets.all(10),
                               decoration: BoxDecoration(
@@ -405,7 +406,8 @@ class _playlistsongsState extends State<playlistsongs> {
     final songProvider = Provider.of<Songlistprovider>(context);
     final colortheme=Provider.of<Themeprovider>(context);
     final currentplayprovider=Provider.of<currentplay>(context);
-    return Material(
+
+    return GlobalScaffold(child: Material(
       color: colortheme.theme.background,
       child: CustomScrollView(
         slivers: [
@@ -446,17 +448,17 @@ class _playlistsongsState extends State<playlistsongs> {
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true, // Ensures title is centered properly
               title: Align(
-                alignment: Alignment.bottomCenter, // Centered horizontally at the bottom
-                child: SizedBox(
-                  width: double.infinity, // Ensures it takes full width
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      widget.nameofplaylist,
-                      style: TextStyle(color: colortheme.theme.text),
+                  alignment: Alignment.bottomCenter, // Centered horizontally at the bottom
+                  child: SizedBox(
+                    width: double.infinity, // Ensures it takes full width
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        widget.nameofplaylist,
+                        style: TextStyle(color: colortheme.theme.text),
+                      ),
                     ),
-                  ),
-                )
+                  )
 
 
               ),
@@ -464,61 +466,175 @@ class _playlistsongsState extends State<playlistsongs> {
 
           ),
           SliverList(
-            delegate: SliverChildBuilderDelegate(
-                  (context, index){
-                     return Dismissible(
-                            key: Key(songProvider.Songlist[index].path),
-                            direction: DismissDirection.endToStart,
-                            background: Container(
-                              color: Colors.red,
-                              alignment: Alignment.centerRight,
-                              padding: const EdgeInsets.symmetric(horizontal:20 ),
-                              child: const Icon(Icons.delete,color: Colors.white,),
+              delegate: SliverChildBuilderDelegate(
+                    (context, index){
+                  return Dismissible(
+                    key: Key(songProvider.Songlist[index].path),
+                    direction: DismissDirection.endToStart,
+                    background: Container(
+                      color: Colors.red,
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.symmetric(horizontal:20 ),
+                      child: const Icon(Icons.delete,color: Colors.white,),
+                    ),
+                    onDismissed: (direction){
+                      songProvider.deletesong(songProvider.Songlist[index]);
+                    },
+                    child: GestureDetector(
+                      onTap: ()async{
+                        Box<Song> box=Hive.box<Song>(widget.box);
+                        currentplayprovider.changebox(box);
+                        currentplayprovider.changesong(songProvider.Songlist[index]);
+                      },
+                      child: ListTile(
+                        title: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: 70,
+                              height: 70,
+                              decoration: BoxDecoration(
+                                color: currentplayprovider.song.path == songProvider.Songlist[index].path?Colors.black:Colors.transparent,
+                                borderRadius: currentplayprovider.song.path == songProvider.Songlist[index].path?BorderRadius.circular(50):BorderRadius.circular(20),
+                              ),
+                              child: Padding(
+                                padding: currentplayprovider.song.path == songProvider.Songlist[index].path?EdgeInsets.all(16.0):EdgeInsets.all(2.0),
+                                child: ClipRRect(
+                                    borderRadius: currentplayprovider.song.path == songProvider.Songlist[index].path?BorderRadius.circular(90):BorderRadius.circular(20),
+                                    child: buildSongImage(base64Image:songProvider.Songlist[index].Image,width: currentplayprovider.song.path == songProvider.Songlist[index].path?50:100,height: currentplayprovider.song.path == songProvider.Songlist[index].path?50:100)),
+                              ),
                             ),
-                            onDismissed: (direction){
-                              songProvider.deletesong(songProvider.Songlist[index]);
-                            },
-                            child: GestureDetector(
-                              onTap: ()async{
-                                Box<Song> box=Hive.box<Song>(widget.box);
-                                currentplayprovider.changebox(box);
-                                currentplayprovider.changesong(songProvider.Songlist[index]);
-                              },
-                              child: ListTile(
-                                title: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      width: 70,
-                                      height: 70,
-                                      decoration: BoxDecoration(
-                                          color: currentplayprovider.song.path == songProvider.Songlist[index].path?Colors.black:Colors.transparent,
-                                          borderRadius: currentplayprovider.song.path == songProvider.Songlist[index].path?BorderRadius.circular(50):BorderRadius.circular(20),
-                                      ),
-                                      child: Padding(
-                                        padding: currentplayprovider.song.path == songProvider.Songlist[index].path?EdgeInsets.all(16.0):EdgeInsets.all(2.0),
-                                        child: ClipRRect(
-                                            borderRadius: currentplayprovider.song.path == songProvider.Songlist[index].path?BorderRadius.circular(90):BorderRadius.circular(20),
-                                            child: buildSongImage(base64Image:songProvider.Songlist[index].Image,width: currentplayprovider.song.path == songProvider.Songlist[index].path?50:100,height: currentplayprovider.song.path == songProvider.Songlist[index].path?50:100)),
-                                      ),
-                                    ),
-                                    SizedBox(width: 10,),
-                                    Expanded(child: Text("${songProvider.Songlist[index].title}",style: TextStyle(color: currentplayprovider.song.path == songProvider.Songlist[index].path?currentplayprovider.Theme.tab:colortheme.theme.text),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,))
-                                  ],
-                                ),),
-                            ),
-                          );
+                            SizedBox(width: 10,),
+                            Expanded(child: Text("${songProvider.Songlist[index].title}",style: TextStyle(color: currentplayprovider.song.path == songProvider.Songlist[index].path?currentplayprovider.Theme.tab:colortheme.theme.text),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,))
+                          ],
+                        ),),
+                    ),
+                  );
 
 
-              },
-              childCount: songProvider.Songlist.length,
-            )
+                },
+                childCount: songProvider.Songlist.length,
+              )
           ),
 
         ],
       ),
-    );
+    ));
+    // return Material(
+    //   color: colortheme.theme.background,
+    //   child: CustomScrollView(
+    //     slivers: [
+    //       SliverAppBar(
+    //         expandedHeight: 250.0,
+    //         floating: false,
+    //         pinned: false,
+    //         snap: false,
+    //         automaticallyImplyLeading: true,
+    //         leading: IconButton(
+    //           icon: Icon(Icons.arrow_back_ios, color: colortheme.theme.text, size: 24), // Custom icon
+    //           onPressed: () {
+    //             Navigator.pop(context); // Navigates back
+    //           },
+    //         ),
+    //         backgroundColor: colortheme.theme.background,
+    //         flexibleSpace: FlexibleSpaceBar(
+    //           centerTitle: true, // Ensures title is centered properly
+    //           title: Align(
+    //             alignment: Alignment.bottomCenter, // Centered horizontally at the bottom
+    //             child: Hero(
+    //               tag: "${widget.nameofplaylist}",
+    //               child: ClipRRect(
+    //                   borderRadius: BorderRadius.circular(20),
+    //                   child: songProvider.Songlist.length>0?buildSongImage(base64Image:songProvider.Songlist[0].Image,width: 140,height: 140):Image.asset("assets/music.png",width: 140,height: 140,fit: BoxFit.cover,)),
+    //             ),
+    //           ),
+    //         ),
+    //
+    //       ),
+    //       SliverAppBar(
+    //         expandedHeight: 30.0,
+    //         floating: true,
+    //         pinned: true,
+    //         toolbarHeight: 5.0,
+    //         automaticallyImplyLeading: false,
+    //         backgroundColor: colortheme.theme.background,
+    //         flexibleSpace: FlexibleSpaceBar(
+    //           centerTitle: true, // Ensures title is centered properly
+    //           title: Align(
+    //             alignment: Alignment.bottomCenter, // Centered horizontally at the bottom
+    //             child: SizedBox(
+    //               width: double.infinity, // Ensures it takes full width
+    //               child: FittedBox(
+    //                 fit: BoxFit.scaleDown,
+    //                 child: Text(
+    //                   widget.nameofplaylist,
+    //                   style: TextStyle(color: colortheme.theme.text),
+    //                 ),
+    //               ),
+    //             )
+    //
+    //
+    //           ),
+    //         ),
+    //
+    //       ),
+    //       SliverList(
+    //         delegate: SliverChildBuilderDelegate(
+    //               (context, index){
+    //                  return Dismissible(
+    //                         key: Key(songProvider.Songlist[index].path),
+    //                         direction: DismissDirection.endToStart,
+    //                         background: Container(
+    //                           color: Colors.red,
+    //                           alignment: Alignment.centerRight,
+    //                           padding: const EdgeInsets.symmetric(horizontal:20 ),
+    //                           child: const Icon(Icons.delete,color: Colors.white,),
+    //                         ),
+    //                         onDismissed: (direction){
+    //                           songProvider.deletesong(songProvider.Songlist[index]);
+    //                         },
+    //                         child: GestureDetector(
+    //                           onTap: ()async{
+    //                             Box<Song> box=Hive.box<Song>(widget.box);
+    //                             currentplayprovider.changebox(box);
+    //                             currentplayprovider.changesong(songProvider.Songlist[index]);
+    //                           },
+    //                           child: ListTile(
+    //                             title: Row(
+    //                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    //                               crossAxisAlignment: CrossAxisAlignment.center,
+    //                               children: [
+    //                                 Container(
+    //                                   width: 70,
+    //                                   height: 70,
+    //                                   decoration: BoxDecoration(
+    //                                       color: currentplayprovider.song.path == songProvider.Songlist[index].path?Colors.black:Colors.transparent,
+    //                                       borderRadius: currentplayprovider.song.path == songProvider.Songlist[index].path?BorderRadius.circular(50):BorderRadius.circular(20),
+    //                                   ),
+    //                                   child: Padding(
+    //                                     padding: currentplayprovider.song.path == songProvider.Songlist[index].path?EdgeInsets.all(16.0):EdgeInsets.all(2.0),
+    //                                     child: ClipRRect(
+    //                                         borderRadius: currentplayprovider.song.path == songProvider.Songlist[index].path?BorderRadius.circular(90):BorderRadius.circular(20),
+    //                                         child: buildSongImage(base64Image:songProvider.Songlist[index].Image,width: currentplayprovider.song.path == songProvider.Songlist[index].path?50:100,height: currentplayprovider.song.path == songProvider.Songlist[index].path?50:100)),
+    //                                   ),
+    //                                 ),
+    //                                 SizedBox(width: 10,),
+    //                                 Expanded(child: Text("${songProvider.Songlist[index].title}",style: TextStyle(color: currentplayprovider.song.path == songProvider.Songlist[index].path?currentplayprovider.Theme.tab:colortheme.theme.text),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,))
+    //                               ],
+    //                             ),),
+    //                         ),
+    //                       );
+    //
+    //
+    //           },
+    //           childCount: songProvider.Songlist.length,
+    //         )
+    //       ),
+    //
+    //     ],
+    //   ),
+    // );
   }
 }
 

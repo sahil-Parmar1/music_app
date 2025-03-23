@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:music_app_2/main.dart';
 import 'package:music_app_2/provider_classes.dart';
+import 'package:music_app_2/screens/artistscreen.dart';
 import 'package:music_app_2/screens/playlistscreen.dart';
 import 'package:music_app_2/screens/songscreen.dart';
 import 'package:music_app_2/store/songs.dart';
@@ -60,7 +61,7 @@ class _AlbumState extends State<Album> {
   Widget build(BuildContext context) {
     final albumprovier=Provider.of<playlistprovider>(context);
     final colortheme=Provider.of<Themeprovider>(context);
-    return Wrap(
+    return albumprovier.playlists.length>0?Wrap(
       spacing: 1000.0,
       runSpacing: 1.0,
       children: albumprovier.playlists.map((playlistitem){
@@ -131,12 +132,12 @@ class _AlbumState extends State<Album> {
                                       ispresent=true;
                                     }
                                     return ispresent?snapshot.data!=null?buildSongImage(base64Image: snapshot.data,width: 70,height: 70):Image.asset(
-                                      "assets/playlist.png",
+                                      "assets/album.png",
                                       width: 70,
                                       height: 70,
                                       fit: BoxFit.cover,
                                     ):Image.asset(
-                                      "assets/playlist.png",
+                                      "assets/album.png",
                                       width: 70,
                                       height: 70,
                                       fit: BoxFit.cover,
@@ -197,6 +198,6 @@ class _AlbumState extends State<Album> {
         );
 
       }).toList(),
-    );
+    ):NoArtistsScreen(artist: false);
   }
 }

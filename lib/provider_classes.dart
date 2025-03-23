@@ -314,9 +314,9 @@ class playlistprovider extends ChangeNotifier
   String key="playlists";
   playlistprovider(String newkey){
       key=newkey;
-    _loadplaylists();
+    loadplaylists();
   }
-  void _loadplaylists()async
+  void loadplaylists()async
   {
 
     playlists=await getfromShared_preference(key: key)??[];
@@ -328,7 +328,7 @@ class playlistprovider extends ChangeNotifier
     List<String> newplaylist=await getfromShared_preference(key: key)??[];
     newplaylist.add(playlistname);
     savetoShared_preference(string: newplaylist, key: key);
-    _loadplaylists();
+    loadplaylists();
   }
   void deleteplaylist(String playlistname)async
   {
@@ -336,7 +336,7 @@ class playlistprovider extends ChangeNotifier
     newplaylist.remove(playlistname);
     savetoShared_preference(string: newplaylist, key: key);
     showToast("$playlistname was deleted");
-    _loadplaylists();
+    loadplaylists();
   }
   Future<int> calculatesongs(String boxname)async{
     Box<Song> box;
@@ -352,3 +352,22 @@ class playlistprovider extends ChangeNotifier
 }
 
 
+
+//provider for search screen
+
+class searchProvider extends ChangeNotifier
+{
+  List<Song> searchlist=[];
+  Box<Song> songbox=Hive.box<Song>("songs");
+  List<Song> songlist=[];
+  searchProvider(){
+    songlist= songbox.values.toList();
+  }
+  Future<void> searchlistfunction(String name)async
+  {
+    searchlist=songlist.where((song)=>
+    song.title!.toLowerCase().contains(name.toLowerCase())
+    ).toList();
+    notifyListeners();
+  }
+}

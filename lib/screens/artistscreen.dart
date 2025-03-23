@@ -60,7 +60,7 @@ class _AlbumState extends State<Artistscreen> {
   Widget build(BuildContext context) {
     final albumprovier=Provider.of<playlistprovider>(context);
     final colortheme=Provider.of<Themeprovider>(context);
-    return Wrap(
+    return albumprovier.playlists.length>0?Wrap(
       spacing: 1000.0,
       runSpacing: 1.0,
       children: albumprovier.playlists.map((playlistitem){
@@ -197,6 +197,53 @@ class _AlbumState extends State<Artistscreen> {
         );
 
       }).toList(),
+    ):NoArtistsScreen(artist: true,);
+  }
+}
+
+
+class NoArtistsScreen extends StatelessWidget {
+  bool artist;
+  NoArtistsScreen({required this.artist});
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
+            artist?"assets/singer.png":"assets/album.png", // Add an appropriate placeholder image
+            width: 150,
+            height: 150,
+          ),
+          SizedBox(height: 16),
+          Text(
+            artist?"No Artists Available":"No Album Available",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[700],
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            artist?"Add new songs  to see artist here.":"Add new songs  to see album here.",
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[500],
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            "Or Refresh the Song Screen",
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[500],
+            ),
+          ),
+
+        ],
+      ),
     );
   }
 }
