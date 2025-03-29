@@ -172,7 +172,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
 
                         Column(
                           children: [
-                            Text("${currentplayprovider.song.title}",style:TextStyle(color: currentplayprovider.Theme.tab,fontSize: 20),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,),
+                            Material(
+                                color: currentplayprovider.Theme.background,
+                                child: Text("${currentplayprovider.song.title}",style:TextStyle(color: currentplayprovider.Theme.tab,fontSize: 20),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,)),
                             Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: Align(
@@ -181,9 +183,12 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                   children: [
-                                    Expanded(child: Padding(
-                                      padding: const EdgeInsets.all(16.0),
-                                      child: Text("${currentplayprovider.song.artist??"Unknown"}",style:TextStyle(color: currentplayprovider.Theme.text,fontSize: 15),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,),
+                                    Expanded(child: Material(
+                                      color: currentplayprovider.Theme.background,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: Text("${currentplayprovider.song.artist??"Unknown"}",style:TextStyle(color: currentplayprovider.Theme.text,fontSize: 15),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,),
+                                      ),
                                     )),
                                     IconButton(onPressed: ()async{
                                       var box=Hive.box<Song>("likedsongs");
@@ -224,7 +229,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                          //play to this poistion
                                          print("${value.runtimeType}");
                                          print("value :$value");
-                                         currentplayprovider.seektoposition(value);
+                                         WidgetsBinding.instance.addPostFrameCallback((_) {
+                                           currentplayprovider.seektoposition(value);
+                                         });
                                        },
                                      ),
                                    ),
@@ -237,12 +244,15 @@ class _PlayerScreenState extends State<PlayerScreen> {
                              builder: (context,position,child){
                                return Padding(
                                  padding: const EdgeInsets.only(right: 40,left: 40),
-                                 child: Row(
-                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                   children: [
-                                     Text(formatDuration(position),style: TextStyle(color: currentplayprovider.Theme.text),), // Current Time
-                                     Text(formatDuration(currentplayprovider.duration ?? Duration.zero),style: TextStyle(color: currentplayprovider.Theme.text),), // Total Time
-                                   ],
+                                 child: Material(
+                                   color: currentplayprovider.Theme.background,
+                                   child: Row(
+                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                     children: [
+                                       Text(formatDuration(position),style: TextStyle(color: currentplayprovider.Theme.text),), // Current Time
+                                       Text(formatDuration(currentplayprovider.duration ?? Duration.zero),style: TextStyle(color: currentplayprovider.Theme.text),), // Total Time
+                                     ],
+                                   ),
                                  ),
                                );
                          }),

@@ -312,15 +312,18 @@ class MiniPlayer extends StatelessWidget {
                   ),
                   SizedBox(width: 5),
                   Expanded(
-                    child: Text(
-                      "${currentPlayProvider.song.title}",
-                      style: TextStyle(
-                        color: currentPlayProvider.Theme.text,
-                        fontSize: 18,
+                    child: Material(
+                      color: currentPlayProvider.Theme.background,
+                      child: Text(
+                        "${currentPlayProvider.song.title}",
+                        style: TextStyle(
+                          color: currentPlayProvider.Theme.text,
+                          fontSize: 18,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                        softWrap: true,
                       ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 2,
-                      softWrap: true,
                     ),
                   ),
                   Row(
