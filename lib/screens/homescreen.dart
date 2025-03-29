@@ -34,146 +34,155 @@ class _HomeScreenState extends State<HomeScreen> {
     double screenHeight = MediaQuery.of(context).size.height;
     return GlobalScaffold(child: NestedScrollView(
       headerSliverBuilder: (context,innerBoxIsScrolled)=>[
+
+
         SliverAppBar(
-          expandedHeight: MediaQuery.of(context).size.height * 0.07,
+          expandedHeight: MediaQuery.of(context).size.height * 0.08, // 8% of screen height
           backgroundColor: colortheme.theme.background,
           floating: true,
           snap: true,
           pinned: false,
           flexibleSpace: FlexibleSpaceBar(
-            titlePadding: EdgeInsets.symmetric(horizontal: screenWidth * 0.03),
-            title: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,  // Allow horizontal scrolling
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      ClipOval(
-                        child: Image.asset(
-                          'assets/music-player.png',
-                          width: 30, // Slightly smaller
-                          height: 30,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      SizedBox(width: screenWidth * 0.02),
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          "Music Player",
-                          style: TextStyle(
-                            color: colortheme.theme.text,
-                            fontSize: screenWidth * 0.05, // Slightly reduced
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
+            titlePadding: EdgeInsets.symmetric(
+              horizontal: MediaQuery.of(context).size.width * 0.03, // 3% of screen width
+              vertical: 8.0, // Fixed vertical padding for consistency
+            ),
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Profile Image
+                ClipOval(
+                  child: Image.asset(
+                    'assets/music-player.png',
+                    width: MediaQuery.of(context).size.width * 0.08, // 8% of screen width
+                    height: MediaQuery.of(context).size.width * 0.08,
+                    fit: BoxFit.cover,
                   ),
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Row(
-                      children: [
-                        IconButton(
-                          onPressed: () {
-                            Navigator.push(context,
-                                MaterialPageRoute(builder: (context) => ChangeNotifierProvider(
-                                  create: (context) => searchProvider(),
-                                  child: searchScreen(),
-                                )));
-                          },
-                          icon: Icon(CupertinoIcons.search, size: screenWidth * 0.05, color: colortheme.theme.text), // Smaller icon
-                          padding: EdgeInsets.zero,
-                          constraints: BoxConstraints(),
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            showModalBottomSheet(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                              ),
-                              backgroundColor: colortheme.theme.background,
-                              context: context,
-                              builder: (context) {
-                                final Map<String, ThemeColor> themes = {
-                                  "darkblue": DarkBlue(),
-                                  "darkgreen": DarkGreen(),
-                                  "darkpink": DarkPink(),
-                                  "darkorange": DarkOrange(),
-                                  "darkred": DarkRed(),
-                                  "whiteblue": WhiteBlue(),
-                                  "whitegreen": WhiteGreen(),
-                                  "whitepink": WhitePink(),
-                                  "whiteorange": WhiteOrange(),
-                                  "whitered": WhiteRed(),
-                                };
-                                return Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min, // Adjust height to content
-                                    crossAxisAlignment: CrossAxisAlignment.center, // Center content
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                                        child: Text(
-                                          "Select Theme",
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontSize: 23,
-                                            fontWeight: FontWeight.bold,
-                                            color: colortheme.theme.tab,
-                                          ),
-                                        ),
-                                      ),
-                                      Wrap(
-                                        spacing: 12, // Horizontal spacing
-                                        runSpacing: 12, // Vertical spacing
-                                        alignment: WrapAlignment.center, // Center-align the circles
-                                        children: themes.entries.map((entry) {
-                                          String themekey = entry.key;
-                                          ThemeColor theme = entry.value;
+                ),
+                SizedBox(width: MediaQuery.of(context).size.width * 0.02), // 2% spacing
 
-                                          return GestureDetector(
-                                            onTap: () {
-                                              colortheme.settheme(themekey);
-                                            },
-                                            child: AnimatedContainer(
-                                              duration: Duration(milliseconds: 300), // Smooth animation
-                                              width: 60,
-                                              height: 60,
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                color: theme.tab,
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: colortheme.theme.background,
-                                                    blurRadius: 8,
-                                                    spreadRadius: 2,
-                                                    offset: Offset(2, 4),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          );
-                                        }).toList(),
-                                      ),
-                                      SizedBox(height: 20), // Extra spacing at the bottom
-                                    ],
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                          icon: Icon(CupertinoIcons.settings, size: screenWidth * 0.05, color: colortheme.theme.text), // Smaller icon
-                          padding: EdgeInsets.zero,
-                          constraints: BoxConstraints(),
-                        ),
-                      ],
+                // Title
+                Expanded(
+                  child: Text(
+                    "Music Player",
+                    style: TextStyle(
+                      color: colortheme.theme.text,
+                      fontSize: MediaQuery.of(context).size.width * 0.045, // 4.5% of screen width
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ],
-              ),
+                ),
+
+                 SizedBox(width: MediaQuery.of(context).size.width * 0.02), // 2% spacing
+
+                // Search Icon
+                IconButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChangeNotifierProvider(
+                          create: (context) => searchProvider(),
+                          child: searchScreen(),
+                        ),
+                      ),
+                    );
+                  },
+                  icon: Icon(
+                    CupertinoIcons.search,
+                    size: MediaQuery.of(context).size.width * 0.06, // 6% of screen width
+                    color: colortheme.theme.text,
+                  ),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+
+                // Settings Icon
+                IconButton(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                      ),
+                      backgroundColor: colortheme.theme.background,
+                      context: context,
+                      builder: (context) {
+                        final Map<String, ThemeColor> themes = {
+                          "darkblue": DarkBlue(),
+                          "darkgreen": DarkGreen(),
+                          "darkpink": DarkPink(),
+                          "darkorange": DarkOrange(),
+                          "darkred": DarkRed(),
+                          "whiteblue": WhiteBlue(),
+                          "whitegreen": WhiteGreen(),
+                          "whitepink": WhitePink(),
+                          "whiteorange": WhiteOrange(),
+                          "whitered": WhiteRed(),
+                        };
+                        return Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                child: Text(
+                                  "Select Theme",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 23,
+                                    fontWeight: FontWeight.bold,
+                                    color: colortheme.theme.tab,
+                                  ),
+                                ),
+                              ),
+                              Wrap(
+                                spacing: 12,
+                                runSpacing: 12,
+                                alignment: WrapAlignment.center,
+                                children: themes.entries.map((entry) {
+                                  String themekey = entry.key;
+                                  ThemeColor theme = entry.value;
+                                  return GestureDetector(
+                                    onTap: () => colortheme.settheme(themekey),
+                                    child: AnimatedContainer(
+                                      duration: const Duration(milliseconds: 300),
+                                      width: 60,
+                                      height: 60,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: theme.tab,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: colortheme.theme.background,
+                                            blurRadius: 8,
+                                            spreadRadius: 2,
+                                            offset: const Offset(2, 4),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                              const SizedBox(height: 20),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  icon: Icon(
+                    CupertinoIcons.settings,
+                    size: MediaQuery.of(context).size.width * 0.06, // 6% of screen width
+                    color: colortheme.theme.text,
+                  ),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              ],
             ),
           ),
         ),
