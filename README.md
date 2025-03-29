@@ -4,15 +4,15 @@ A simple and beautiful music player app built with Flutter. Enjoy your favorite 
 
 ## 📸 Screenshots
 
-![App Screenshot](assets/screenshot1.png)
-![App Screenshot](assets/screenshot2.png)
-![App Screenshot](assets/screenshot3.png)
-![App Screenshot](assets/screenshot4.png)
-![App Screenshot](assets/screenshot5.png)
+![App Screenshot](assets/Screenshot1.png)
+![App Screenshot](assets/Screenshot2.png)
+![App Screenshot](assets/Screenshot3.png)
+![App Screenshot](assets/Screenshot4.png)
+![App Screenshot](assets/Screenshot5.png)
 
 ## 🎥 Demo Video
 
-https://github.com/sahil-Parmar1/music_app/assets/music_app.mp3
+https://github.com/sahil-Parmar1/music_app/assets/music_app.mp4
 
 ## 🚀 Features
 - Play, pause, and stop music
