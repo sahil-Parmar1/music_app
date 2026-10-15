@@ -98,125 +98,133 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showThemeModal(BuildContext context, Themeprovider colortheme) {
+  static final Map<String, ({ThemeColor theme, String label})> _darkThemes = {
+    "darkblue": (theme: DarkBlue(), label: "Dark Blue"),
+    "darkgreen": (theme: DarkGreen(), label: "Emerald"),
+    "darkpink": (theme: DarkPink(), label: "Magenta"),
+    "darkorange": (theme: DarkOrange(), label: "Sunset"),
+    "darkred": (theme: DarkRed(), label: "Crimson"),
+  };
+
+  static final Map<String, ({ThemeColor theme, String label})> _lightThemes = {
+    "whiteblue": (theme: WhiteBlue(), label: "Sky Blue"),
+    "whitegreen": (theme: WhiteGreen(), label: "Mint"),
+    "whitepink": (theme: WhitePink(), label: "Rose"),
+    "whiteorange": (theme: WhiteOrange(), label: "Peach"),
+    "whitered": (theme: WhiteRed(), label: "Coral"),
+  };
+
+  void _showThemeModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      backgroundColor: colortheme.theme.background,
-      builder: (context) {
-        final darkThemes = <String, ({ThemeColor theme, String label})>{
-          "darkblue": (theme: DarkBlue(), label: "Dark Blue"),
-          "darkgreen": (theme: DarkGreen(), label: "Emerald"),
-          "darkpink": (theme: DarkPink(), label: "Magenta"),
-          "darkorange": (theme: DarkOrange(), label: "Sunset"),
-          "darkred": (theme: DarkRed(), label: "Crimson"),
-        };
-        final lightThemes = <String, ({ThemeColor theme, String label})>{
-          "whiteblue": (theme: WhiteBlue(), label: "Sky Blue"),
-          "whitegreen": (theme: WhiteGreen(), label: "Mint"),
-          "whitepink": (theme: WhitePink(), label: "Rose"),
-          "whiteorange": (theme: WhiteOrange(), label: "Peach"),
-          "whitered": (theme: WhiteRed(), label: "Coral"),
-        };
-
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Top drag handle
-                Container(
-                  width: 44,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: colortheme.theme.text.withValues(alpha: 0.25),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(CupertinoIcons.paintbrush_fill, color: colortheme.theme.tab, size: 22),
-                    const SizedBox(width: 8),
-                    Text(
-                      "Select Theme",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: colortheme.theme.text,
+      backgroundColor: Colors.transparent,
+      builder: (modalContext) {
+        return Consumer<Themeprovider>(
+          builder: (context, colortheme, child) {
+            return Container(
+              decoration: BoxDecoration(
+                color: colortheme.theme.background,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Top drag handle
+                      Container(
+                        width: 44,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: colortheme.theme.text.withValues(alpha: 0.25),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 18),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "DARK PALETTES",
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.2,
-                      color: colortheme.theme.text.withValues(alpha: 0.55),
-                    ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(CupertinoIcons.paintbrush_fill, color: colortheme.theme.tab, size: 22),
+                          const SizedBox(width: 8),
+                          Text(
+                            "Select Theme",
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: colortheme.theme.text,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "DARK PALETTES",
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.2,
+                            color: colortheme.theme.text.withValues(alpha: 0.55),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 14,
+                        runSpacing: 12,
+                        alignment: WrapAlignment.center,
+                        children: _darkThemes.entries.map((entry) {
+                          return _buildThemeItem(
+                            themeKey: entry.key,
+                            theme: entry.value.theme,
+                            label: entry.value.label,
+                            isSelected: colortheme.currentThemeKey == entry.key,
+                            onTap: () => colortheme.settheme(entry.key),
+                            activeColor: colortheme.theme.tab,
+                            textColor: colortheme.theme.text,
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 18),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "LIGHT PALETTES",
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.2,
+                            color: colortheme.theme.text.withValues(alpha: 0.55),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 14,
+                        runSpacing: 12,
+                        alignment: WrapAlignment.center,
+                        children: _lightThemes.entries.map((entry) {
+                          return _buildThemeItem(
+                            themeKey: entry.key,
+                            theme: entry.value.theme,
+                            label: entry.value.label,
+                            isSelected: colortheme.currentThemeKey == entry.key,
+                            onTap: () => colortheme.settheme(entry.key),
+                            activeColor: colortheme.theme.tab,
+                            textColor: colortheme.theme.text,
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 14),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 14,
-                  runSpacing: 12,
-                  alignment: WrapAlignment.center,
-                  children: darkThemes.entries.map((entry) {
-                    return _buildThemeItem(
-                      themeKey: entry.key,
-                      theme: entry.value.theme,
-                      label: entry.value.label,
-                      isSelected: colortheme.currentThemeKey == entry.key,
-                      onTap: () => colortheme.settheme(entry.key),
-                      activeColor: colortheme.theme.tab,
-                      textColor: colortheme.theme.text,
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 18),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "LIGHT PALETTES",
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.2,
-                      color: colortheme.theme.text.withValues(alpha: 0.55),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 14,
-                  runSpacing: 12,
-                  alignment: WrapAlignment.center,
-                  children: lightThemes.entries.map((entry) {
-                    return _buildThemeItem(
-                      themeKey: entry.key,
-                      theme: entry.value.theme,
-                      label: entry.value.label,
-                      isSelected: colortheme.currentThemeKey == entry.key,
-                      onTap: () => colortheme.settheme(entry.key),
-                      activeColor: colortheme.theme.tab,
-                      textColor: colortheme.theme.text,
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 14),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
@@ -237,29 +245,22 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           AnimatedContainer(
-            duration: const Duration(milliseconds: 250),
+            duration: const Duration(milliseconds: 200),
             width: 52,
             height: 52,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: theme.background,
               border: Border.all(
-                color: isSelected ? theme.tab : theme.tab.withValues(alpha: 0.35),
-                width: isSelected ? 3.5 : 2.0,
+                color: isSelected ? theme.tab : theme.tab.withValues(alpha: 0.3),
+                width: isSelected ? 3.0 : 1.5,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: theme.tab.withValues(alpha: isSelected ? 0.45 : 0.15),
-                  blurRadius: isSelected ? 10 : 4,
-                  spreadRadius: isSelected ? 1 : 0,
-                  offset: const Offset(0, 3),
-                ),
-              ],
             ),
             child: Center(
-              child: Container(
-                width: 22,
-                height: 22,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: isSelected ? 24 : 20,
+                height: isSelected ? 24 : 20,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: theme.tab,
@@ -267,7 +268,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: isSelected
                     ? Icon(
                         Icons.check,
-                        size: 14,
+                        size: 15,
                         color: _getContrastingTextColor(theme.tab),
                       )
                     : null,
@@ -354,7 +355,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 tooltip: "App Theme",
                 color: colortheme.theme.tab,
                 backgroundColor: colortheme.theme.tab.withValues(alpha: 0.15),
-                onTap: () => _showThemeModal(context, colortheme),
+                onTap: () => _showThemeModal(context),
               ),
               const SizedBox(width: 16),
             ],

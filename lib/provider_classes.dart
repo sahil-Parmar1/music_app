@@ -89,14 +89,13 @@ class Songlistprovider extends ChangeNotifier
 class Themeprovider extends ChangeNotifier
 {
   ThemeColor theme=DarkBlue();
-  String currentThemeKey='darkgreen';
+  String currentThemeKey='darkblue';
   Themeprovider(){
     _loadtheme();
   }
-  Future<void> _loadtheme()async
+
+  void _applyTheme(String color)
   {
-    SharedPreferences prefs=await SharedPreferences.getInstance();
-    String color=prefs.getString('theme')??'darkgreen';
     currentThemeKey=color;
     switch(color)
     {
@@ -126,10 +125,17 @@ class Themeprovider extends ChangeNotifier
     notifyListeners();
   }
 
+  Future<void> _loadtheme()async
+  {
+    SharedPreferences prefs=await SharedPreferences.getInstance();
+    String color=prefs.getString('theme')??'darkblue';
+    _applyTheme(color);
+  }
+
   Future<void> settheme(String color)async
   {
+    _applyTheme(color);
     savetoStringShared_preference(string: color, key: 'theme');
-    _loadtheme();
   }
 }
 
