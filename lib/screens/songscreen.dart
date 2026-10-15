@@ -182,114 +182,147 @@ class _PlayerScreenState extends State<PlayerScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        ValueListenableBuilder<bool>(valueListenable: currentplayprovider.isplaying,
-                            builder: (context,playing,child){
-                           return    Padding(
-                             padding: const EdgeInsets.all(8.0),
-                             child: AnimatedContainer(
-                               duration: Duration(milliseconds: 400), // Adjust duration for smoother effect
-                               curve: Curves.easeInOut, // Smooth transition curve
-                               width: playing ? 300 : 250,
-                               height: playing ? 300 : 250,
-                               child: ClipRRect(
-                                 borderRadius: BorderRadius.circular(10),
-                                 child: buildSongImage(
-                                   base64Image: currentplayprovider.song.Image,
-                                   width: double.infinity, // Use full width of AnimatedContainer
-                                   height: double.infinity, // Use full height of AnimatedContainer
-                                 ),
-                               ),
-                             ),
-                           );
+                        const SizedBox(height: 64),
+                        ValueListenableBuilder<bool>(
+                            valueListenable: currentplayprovider.isplaying,
+                            builder: (context, playing, child) {
+                              return Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 400),
+                                  curve: Curves.easeInOut,
+                                  width: playing ? 300 : 250,
+                                  height: playing ? 300 : 250,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: buildSongImage(
+                                      base64Image: currentplayprovider.song.Image,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                    ),
+                                  ),
+                                ),
+                              );
                             }),
 
+                        const SizedBox(height: 12),
 
-                        Column(
-                          children: [
-                            Material(
-                                color: currentplayprovider.Theme.background,
-                                child: Text("${currentplayprovider.song.title}",style:TextStyle(color: currentplayprovider.Theme.tab,fontSize: 20),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,)),
-                            Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Align(
-                                alignment: Alignment.bottomCenter,
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        // Title, Artist, and Favorite button properly aligned with padding
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Expanded(child: Material(
-                                      color: currentplayprovider.Theme.background,
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(16.0),
-                                        child: Text("${currentplayprovider.song.artist??"Unknown"}",style:TextStyle(color: currentplayprovider.Theme.text,fontSize: 15),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,),
+                                    Text(
+                                      currentplayprovider.song.title?.isNotEmpty == true
+                                          ? currentplayprovider.song.title!
+                                          : "Unknown Title",
+                                      style: TextStyle(
+                                        color: currentplayprovider.Theme.tab,
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                        height: 1.25,
                                       ),
-                                    )),
-                                    IconButton(onPressed: ()async{
-                                      var box=Hive.box<Song>("likedsongs");
-                                          addSongtoplaylist(currentplayprovider.song, box);
-                                      showToast("Liked ${currentplayprovider.song.title}");
-
-                                    }, icon: Icon(CupertinoIcons.heart_fill,color: currentplayprovider.Theme.tab,)),
-
-
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 2,
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      currentplayprovider.song.artist?.isNotEmpty == true
+                                          ? currentplayprovider.song.artist!
+                                          : "Unknown Artist",
+                                      style: TextStyle(
+                                        color: currentplayprovider.Theme.text.withValues(alpha: 0.75),
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                    ),
                                   ],
                                 ),
                               ),
-                            )
-                          ],
+                              const SizedBox(width: 12),
+                              IconButton(
+                                onPressed: () async {
+                                  var box = Hive.box<Song>("likedsongs");
+                                  addSongtoplaylist(currentplayprovider.song, box);
+                                  showToast("Liked ${currentplayprovider.song.title}");
+                                },
+                                icon: Icon(
+                                  CupertinoIcons.heart_fill,
+                                  color: currentplayprovider.Theme.tab,
+                                  size: 28,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
 
-                         ValueListenableBuilder<Duration>(
-                             valueListenable: currentplayprovider.positionNotifier,
-                             builder: (context,position,child){
-                               return Padding(
-                                 padding: const EdgeInsets.only(right: 15,left: 15),
-                                 child: Material(
-                                   color: currentplayprovider.Theme.background,
-                                   child: SliderTheme(
-                                     data: SliderThemeData(
-                                       activeTrackColor: currentplayprovider.Theme.tab,
-                                       thumbColor: currentplayprovider.Theme.tab,
-                                       overlayColor:currentplayprovider.Theme.tab,
-                                       thumbShape: RoundSliderThumbShape(enabledThumbRadius: 0),
-                                       trackHeight: 10.0
+                        ValueListenableBuilder<Duration>(
+                            valueListenable: currentplayprovider.positionNotifier,
+                            builder: (context, position, child) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                child: Material(
+                                  color: currentplayprovider.Theme.background,
+                                  child: SliderTheme(
+                                    data: SliderThemeData(
+                                      activeTrackColor: currentplayprovider.Theme.tab,
+                                      thumbColor: currentplayprovider.Theme.tab,
+                                      overlayColor: currentplayprovider.Theme.tab.withValues(alpha: 0.2),
+                                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 0),
+                                      trackHeight: 10.0,
+                                    ),
+                                    child: Slider(
+                                      min: 0,
+                                      max: currentplayprovider.duration?.inSeconds.toDouble() ?? 1,
+                                      value: position.inSeconds.toDouble().clamp(0, currentplayprovider.duration?.inSeconds.toDouble() ?? 1),
+                                      onChanged: (value) {
+                                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                                          currentplayprovider.seektoposition(value);
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }),
 
-                                     ),
-                                     child: Slider(
-                                       min: 0,
-                                       max: currentplayprovider.duration?.inSeconds.toDouble()??1,
-                                       value: position.inSeconds.toDouble().clamp(0, currentplayprovider.duration?.inSeconds.toDouble()??1), //is ensuring that the Slider value stays within a valid range
-                                       onChanged: (value){
-                                         //play to this poistion
-                                         print("${value.runtimeType}");
-                                         print("value :$value");
-                                         WidgetsBinding.instance.addPostFrameCallback((_) {
-                                           currentplayprovider.seektoposition(value);
-                                         });
-                                       },
-                                     ),
-                                   ),
-                                 ),
-                               );
-                             }),
-
-                         ValueListenableBuilder<Duration>(
-                             valueListenable: currentplayprovider.positionNotifier,
-                             builder: (context,position,child){
-                               return Padding(
-                                 padding: const EdgeInsets.only(right: 40,left: 40),
-                                 child: Material(
-                                   color: currentplayprovider.Theme.background,
-                                   child: Row(
-                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                     children: [
-                                       Text(formatDuration(position),style: TextStyle(color: currentplayprovider.Theme.text),), // Current Time
-                                       Text(formatDuration(currentplayprovider.duration ?? Duration.zero),style: TextStyle(color: currentplayprovider.Theme.text),), // Total Time
-                                     ],
-                                   ),
-                                 ),
-                               );
-                         }),
+                        ValueListenableBuilder<Duration>(
+                            valueListenable: currentplayprovider.positionNotifier,
+                            builder: (context, position, child) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 24),
+                                child: Material(
+                                  color: currentplayprovider.Theme.background,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        formatDuration(position),
+                                        style: TextStyle(
+                                          color: currentplayprovider.Theme.text.withValues(alpha: 0.75),
+                                          fontSize: 13,
+                                        ),
+                                      ), // Current Time
+                                      Text(
+                                        formatDuration(currentplayprovider.duration ?? Duration.zero),
+                                        style: TextStyle(
+                                          color: currentplayprovider.Theme.text.withValues(alpha: 0.75),
+                                          fontSize: 13,
+                                        ),
+                                      ), // Total Time
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }),
 
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -534,25 +567,37 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   ),
                 ),
               ),
-              // Position the arrow at the top
-              Positioned(
-                top: 40, // Adjust as needed
-                left: 10, // Align it to the left
-                child: IconButton(
-                  onPressed: () {
-                    if (Navigator.of(context).canPop()) {
-                      Navigator.of(context).pop();
-                    }
-
-                  },
-                  icon: Row(
+              // Top navigation bar with back arrow and title
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  child: Row(
                     children: [
-                      Icon(
-                        Icons.arrow_drop_down_rounded,
-                        size: 45,
-                        color: currentplayprovider.Theme.tab,
+                      IconButton(
+                        onPressed: () {
+                          if (Navigator.of(context).canPop()) {
+                            Navigator.of(context).pop();
+                          }
+                        },
+                        icon: Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          size: 38,
+                          color: currentplayprovider.Theme.tab,
+                        ),
                       ),
-                      Text("${currentplayprovider.song.title}",style:TextStyle(color: currentplayprovider.Theme.tab,fontSize: 20),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,),
+                      Expanded(
+                        child: Text(
+                          currentplayprovider.song.title ?? "",
+                          style: TextStyle(
+                            color: currentplayprovider.Theme.tab,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ),
+                      const SizedBox(width: 48),
                     ],
                   ),
                 ),
