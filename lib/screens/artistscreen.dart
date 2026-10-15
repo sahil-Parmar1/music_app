@@ -84,12 +84,16 @@ class Artistscreen extends StatefulWidget {
   const Artistscreen({super.key});
 
   @override
-  State<Artistscreen> createState() => _AlbumState();
+  State<Artistscreen> createState() => _ArtistscreenState();
 }
 
-class _AlbumState extends State<Artistscreen> {
+class _ArtistscreenState extends State<Artistscreen> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final albumprovier=Provider.of<playlistprovider>(context);
     final colortheme=Provider.of<Themeprovider>(context);
     return albumprovier.playlists.length>0?Wrap(
@@ -151,29 +155,10 @@ class _AlbumState extends State<Artistscreen> {
                             tag: "$playlistitem",
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(12),
-                              child: FutureBuilder(
-                                  future: loadFirstImage(playlistitem),
-                                  builder:(context,snapshot){
-                                    bool ispresent;
-                                    if (snapshot.connectionState == ConnectionState.waiting) {
-                                      ispresent=false;
-                                    } else if (snapshot.hasError) {
-                                      ispresent=false;
-                                    } else {
-                                      ispresent=true;
-                                    }
-                                    return ispresent?snapshot.data!=null?buildSongImage(base64Image: snapshot.data,width: 70,height: 70):Image.asset(
-                                      "assets/singer.png",
-                                      width: 70,
-                                      height: 70,
-                                      fit: BoxFit.cover,
-                                    ):Image.asset(
-                                      "assets/singer.png",
-                                      width: 70,
-                                      height: 70,
-                                      fit: BoxFit.cover,
-                                    );
-                                  }),
+                              child: BoxThumbnail(
+                                boxName: playlistitem,
+                                placeholderAsset: "assets/singer.png",
+                              ),
                             ),
                           ),
                           SizedBox(width: 16), // Add spacing
@@ -195,14 +180,12 @@ class _AlbumState extends State<Artistscreen> {
                                 FutureBuilder<int>(
                                   future: albumprovier.calculatesongs(boxname),
                                   builder: (context, snapshot) {
-                                    String text;
-                                    if (snapshot.connectionState == ConnectionState.waiting) {
-                                      text = "Calculating...";
-                                    } else if (snapshot.hasError) {
-                                      text = "0 songs";
-                                    } else {
-                                      text = "${snapshot.data} songs";
-                                    }
+                                    final count = snapshot.data;
+                                    final text = count != null
+                                        ? "$count songs"
+                                        : (snapshot.connectionState == ConnectionState.waiting
+                                            ? "Calculating..."
+                                            : "0 songs");
 
                                     return Text(
                                       text,
@@ -247,6 +230,7 @@ class NoArtistsScreen extends StatelessWidget {
             artist?"assets/singer.png":"assets/album.png", // Add an appropriate placeholder image
             width: 150,
             height: 150,
+            gaplessPlayback: true,
           ),
           SizedBox(height: 16),
           Text(

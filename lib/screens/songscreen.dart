@@ -56,7 +56,9 @@ class SongScreen extends StatefulWidget {
   State<SongScreen> createState() => _SongState();
 }
 
-class _SongState extends State<SongScreen> {
+class _SongState extends State<SongScreen> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState()
@@ -72,6 +74,7 @@ class _SongState extends State<SongScreen> {
   }
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final songProvider = Provider.of<Songlistprovider>(context);
     final colortheme=Provider.of<Themeprovider>(context);
     final currentplayprovider=Provider.of<currentplay>(context);
@@ -138,18 +141,43 @@ class _SongState extends State<SongScreen> {
   }
 }
 
-//widget to build song profile image
-Widget buildSongImage({required String? base64Image,double width=65,double height=65}) {
+// In-memory cache for decoded song cover bytes to eliminate re-decoding and blinking
+final Map<String, Uint8List> _songImageBytesCache = {};
+
+// Widget to build song profile image with memory caching and gapless playback
+Widget buildSongImage({required String? base64Image, double width = 65, double height = 65}) {
   if (base64Image == null || base64Image.isEmpty) {
-    return Image.asset('assets/default-music.png', fit: BoxFit.cover,width: width,height:height,); // Default image
+    return Image.asset(
+      'assets/default-music.png',
+      fit: BoxFit.cover,
+      width: width,
+      height: height,
+      gaplessPlayback: true,
+    );
   }
 
   try {
-    Uint8List imageBytes = base64Decode(base64Image); // Decode only if not null
-    return Image.memory(imageBytes, fit: BoxFit.cover,width: width,height:height,);
+    Uint8List? imageBytes = _songImageBytesCache[base64Image];
+    if (imageBytes == null) {
+      imageBytes = base64Decode(base64Image);
+      _songImageBytesCache[base64Image] = imageBytes;
+    }
+
+    return Image.memory(
+      imageBytes,
+      fit: BoxFit.cover,
+      width: width,
+      height: height,
+      gaplessPlayback: true,
+    );
   } catch (e) {
-    print("Error decoding base64 image: $e");
-    return Image.asset('assets/default-music.png', fit: BoxFit.cover,width: width,height: height,); // Fallback in case of error
+    return Image.asset(
+      'assets/default-music.png',
+      fit: BoxFit.cover,
+      width: width,
+      height: height,
+      gaplessPlayback: true,
+    );
   }
 }
 

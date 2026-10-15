@@ -45,9 +45,13 @@ class Playlistscreen extends StatefulWidget {
   State<Playlistscreen> createState() => _PlaylistscreenState();
 }
 
-class _PlaylistscreenState extends State<Playlistscreen> {
+class _PlaylistscreenState extends State<Playlistscreen> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final colortheme=Provider.of<Themeprovider>(context);
     final playlist=Provider.of<playlistprovider>(context);
     return SingleChildScrollView(
@@ -132,29 +136,10 @@ class _PlaylistscreenState extends State<Playlistscreen> {
                             tag: "Liked Songs",
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(12),
-                              child: FutureBuilder(
-                                  future: loadFirstImage("likedsongs"),
-                                  builder:(context,snapshot){
-                                    bool ispresent;
-                                    if (snapshot.connectionState == ConnectionState.waiting) {
-                                      ispresent=false;
-                                    } else if (snapshot.hasError) {
-                                      ispresent=false;
-                                    } else {
-                                      ispresent=true;
-                                    }
-                                    return ispresent?snapshot.data!=null?buildSongImage(base64Image: snapshot.data,width: 70,height: 70):Image.asset(
-                                      "assets/music.png",
-                                      width: 70,
-                                      height: 70,
-                                      fit: BoxFit.cover,
-                                    ):Image.asset(
-                                      "assets/music.png",
-                                      width: 70,
-                                      height: 70,
-                                      fit: BoxFit.cover,
-                                    );
-                                  }),
+                              child: const BoxThumbnail(
+                                boxName: "likedsongs",
+                                placeholderAsset: "assets/music.png",
+                              ),
                             ),
                           ),
                           SizedBox(width: 16), // Add spacing
@@ -176,14 +161,12 @@ class _PlaylistscreenState extends State<Playlistscreen> {
                                 FutureBuilder<int>(
                                   future: playlist.calculatesongs("likedsongs"),
                                   builder: (context, snapshot) {
-                                    String text;
-                                    if (snapshot.connectionState == ConnectionState.waiting) {
-                                      text = "Calculating...";
-                                    } else if (snapshot.hasError) {
-                                      text = "0 songs";
-                                    } else {
-                                      text = "${snapshot.data} songs";
-                                    }
+                                    final count = snapshot.data;
+                                    final text = count != null
+                                        ? "$count songs"
+                                        : (snapshot.connectionState == ConnectionState.waiting
+                                            ? "Calculating..."
+                                            : "0 songs");
 
                                     return Text(
                                       text,
@@ -267,29 +250,10 @@ class _PlaylistscreenState extends State<Playlistscreen> {
                                     tag: "$playlistitem",
                                     child: ClipRRect(
                                       borderRadius: BorderRadius.circular(12),
-                                      child: FutureBuilder(
-                                          future: loadFirstImage(playlistitem),
-                                          builder:(context,snapshot){
-                                            bool ispresent;
-                                            if (snapshot.connectionState == ConnectionState.waiting) {
-                                              ispresent=false;
-                                            } else if (snapshot.hasError) {
-                                              ispresent=false;
-                                            } else {
-                                              ispresent=true;
-                                            }
-                                            return ispresent?snapshot.data!=null?buildSongImage(base64Image: snapshot.data,width: 70,height: 70):Image.asset(
-                                              "assets/music.png",
-                                              width: 70,
-                                              height: 70,
-                                              fit: BoxFit.cover,
-                                            ):Image.asset(
-                                              "assets/music.png",
-                                              width: 70,
-                                              height: 70,
-                                              fit: BoxFit.cover,
-                                            );
-                                          }),
+                                      child: BoxThumbnail(
+                                        boxName: playlistitem,
+                                        placeholderAsset: "assets/music.png",
+                                      ),
                                     ),
                                   ),
                                   SizedBox(width: 16), // Add spacing
@@ -311,14 +275,12 @@ class _PlaylistscreenState extends State<Playlistscreen> {
                                         FutureBuilder<int>(
                                           future: playlist.calculatesongs(boxname),
                                           builder: (context, snapshot) {
-                                            String text;
-                                            if (snapshot.connectionState == ConnectionState.waiting) {
-                                              text = "Calculating...";
-                                            } else if (snapshot.hasError) {
-                                              text = "0 songs";
-                                            } else {
-                                              text = "${snapshot.data} songs";
-                                            }
+                                            final count = snapshot.data;
+                                            final text = count != null
+                                                ? "$count songs"
+                                                : (snapshot.connectionState == ConnectionState.waiting
+                                                    ? "Calculating..."
+                                                    : "0 songs");
 
                                             return Text(
                                               text,
@@ -471,7 +433,10 @@ class _playlistsongsState extends State<playlistsongs> {
                   tag: "${widget.nameofplaylist}",
                   child: ClipRRect(
                       borderRadius: BorderRadius.circular(20),
-                      child: songProvider.Songlist.length>0?buildSongImage(base64Image:songProvider.Songlist[0].Image,width: 140,height: 140):Image.asset("assets/music.png",width: 140,height: 140,fit: BoxFit.cover,)),
+                      child: songProvider.Songlist.isNotEmpty
+                          ? buildSongImage(base64Image: songProvider.Songlist[0].Image, width: 140, height: 140)
+                          : Image.asset("assets/music.png", width: 140, height: 140, fit: BoxFit.cover, gaplessPlayback: true),
+                    ),
                 ),
               ),
             ),
@@ -567,10 +532,87 @@ class _playlistsongsState extends State<playlistsongs> {
 
 
 
-//function to load frist image of list
+// In-memory cache for first images of boxes to avoid re-reading Hive and flickering
+final Map<String, String?> _firstImageCache = {};
+
+// Function to load first image of list with caching
 Future<String?> loadFirstImage(String boxName) async {
+  if (_firstImageCache.containsKey(boxName)) {
+    return _firstImageCache[boxName];
+  }
   var box = Hive.isBoxOpen(boxName)
       ? Hive.box<Song>(boxName)
       : await Hive.openBox<Song>(boxName);
-  return box.values.isNotEmpty ? box.values.first.Image : null;
+  final img = box.values.isNotEmpty ? box.values.first.Image : null;
+  _firstImageCache[boxName] = img;
+  return img;
 }
+
+// Widget to render thumbnail for a Hive box without flickering/blinking
+class BoxThumbnail extends StatelessWidget {
+  final String boxName;
+  final String placeholderAsset;
+  final double width;
+  final double height;
+
+  const BoxThumbnail({
+    super.key,
+    required this.boxName,
+    required this.placeholderAsset,
+    this.width = 70,
+    this.height = 70,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (_firstImageCache.containsKey(boxName)) {
+      final img = _firstImageCache[boxName];
+      if (img != null && img.isNotEmpty) {
+        return buildSongImage(base64Image: img, width: width, height: height);
+      }
+      return Image.asset(
+        placeholderAsset,
+        width: width,
+        height: height,
+        fit: BoxFit.cover,
+        gaplessPlayback: true,
+      );
+    }
+
+    if (Hive.isBoxOpen(boxName)) {
+      try {
+        final box = Hive.box<Song>(boxName);
+        final img = box.values.isNotEmpty ? box.values.first.Image : null;
+        _firstImageCache[boxName] = img;
+        if (img != null && img.isNotEmpty) {
+          return buildSongImage(base64Image: img, width: width, height: height);
+        }
+        return Image.asset(
+          placeholderAsset,
+          width: width,
+          height: height,
+          fit: BoxFit.cover,
+          gaplessPlayback: true,
+        );
+      } catch (_) {}
+    }
+
+    return FutureBuilder<String?>(
+      future: loadFirstImage(boxName),
+      builder: (context, snapshot) {
+        final img = snapshot.data ?? _firstImageCache[boxName];
+        if (img != null && img.isNotEmpty) {
+          return buildSongImage(base64Image: img, width: width, height: height);
+        }
+        return Image.asset(
+          placeholderAsset,
+          width: width,
+          height: height,
+          fit: BoxFit.cover,
+          gaplessPlayback: true,
+        );
+      },
+    );
+  }
+}
+

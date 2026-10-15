@@ -84,9 +84,13 @@ class Album extends StatefulWidget {
   State<Album> createState() => _AlbumState();
 }
 
-class _AlbumState extends State<Album> {
+class _AlbumState extends State<Album> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final albumprovier=Provider.of<playlistprovider>(context);
     final colortheme=Provider.of<Themeprovider>(context);
     return albumprovier.playlists.length>0?Wrap(
@@ -148,29 +152,10 @@ class _AlbumState extends State<Album> {
                             tag: "$playlistitem",
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(12),
-                              child: FutureBuilder(
-                                  future: loadFirstImage(playlistitem),
-                                  builder:(context,snapshot){
-                                    bool ispresent;
-                                    if (snapshot.connectionState == ConnectionState.waiting) {
-                                      ispresent=false;
-                                    } else if (snapshot.hasError) {
-                                      ispresent=false;
-                                    } else {
-                                      ispresent=true;
-                                    }
-                                    return ispresent?snapshot.data!=null?buildSongImage(base64Image: snapshot.data,width: 70,height: 70):Image.asset(
-                                      "assets/album.png",
-                                      width: 70,
-                                      height: 70,
-                                      fit: BoxFit.cover,
-                                    ):Image.asset(
-                                      "assets/album.png",
-                                      width: 70,
-                                      height: 70,
-                                      fit: BoxFit.cover,
-                                    );
-                                  }),
+                              child: BoxThumbnail(
+                                boxName: playlistitem,
+                                placeholderAsset: "assets/album.png",
+                              ),
                             ),
                           ),
                           SizedBox(width: 16), // Add spacing
@@ -192,14 +177,12 @@ class _AlbumState extends State<Album> {
                                 FutureBuilder<int>(
                                   future: albumprovier.calculatesongs(boxname),
                                   builder: (context, snapshot) {
-                                    String text;
-                                    if (snapshot.connectionState == ConnectionState.waiting) {
-                                      text = "Calculating...";
-                                    } else if (snapshot.hasError) {
-                                      text = "0 songs";
-                                    } else {
-                                      text = "${snapshot.data} songs";
-                                    }
+                                    final count = snapshot.data;
+                                    final text = count != null
+                                        ? "$count songs"
+                                        : (snapshot.connectionState == ConnectionState.waiting
+                                            ? "Calculating..."
+                                            : "0 songs");
 
                                     return Text(
                                       text,
