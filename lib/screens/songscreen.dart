@@ -443,26 +443,26 @@ class _PlayerScreenState extends State<PlayerScreen> {
           body: Stack(
             children: [
               Center(
-                child: Hero(
-                  tag: 'player',
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const SizedBox(height: 64),
-                        ValueListenableBuilder<bool>(
-                            valueListenable: currentplayprovider.isplaying,
-                            builder: (context, playing, child) {
-                              return Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 400),
-                                  curve: Curves.easeInOut,
-                                  width: playing ? 300 : 250,
-                                  height: playing ? 300 : 250,
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(16),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 64),
+                      ValueListenableBuilder<bool>(
+                          valueListenable: currentplayprovider.isplaying,
+                          builder: (context, playing, child) {
+                            return Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 400),
+                                curve: Curves.easeInOut,
+                                width: playing ? 300 : 250,
+                                height: playing ? 300 : 250,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Hero(
+                                    tag: 'current_song_artwork',
                                     child: buildSongImage(
                                       base64Image: currentplayprovider.song.Image,
                                       width: double.infinity,
@@ -470,51 +470,54 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                     ),
                                   ),
                                 ),
-                              );
-                            }),
-
-                        const SizedBox(height: 12),
-
-                        // Title, Artist, and Favorite button properly aligned with padding
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      currentplayprovider.song.title?.isNotEmpty == true
-                                          ? currentplayprovider.song.title!
-                                          : "Unknown Title",
-                                      style: TextStyle(
-                                        color: currentplayprovider.Theme.tab,
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.bold,
-                                        height: 1.25,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 2,
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      currentplayprovider.song.artist?.isNotEmpty == true
-                                          ? currentplayprovider.song.artist!
-                                          : "Unknown Artist",
-                                      style: TextStyle(
-                                        color: currentplayprovider.Theme.text.withValues(alpha: 0.75),
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
-                                    ),
-                                  ],
-                                ),
                               ),
+                            );
+                          }),
+
+                      const SizedBox(height: 12),
+
+                      // Title, Artist, and Favorite button properly aligned with padding
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    currentplayprovider.song.title?.isNotEmpty == true
+                                        ? currentplayprovider.song.title!
+                                        : "Unknown Title",
+                                    style: TextStyle(
+                                      color: currentplayprovider.Theme.tab,
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      height: 1.25,
+                                      decoration: TextDecoration.none,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 2,
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    currentplayprovider.song.artist?.isNotEmpty == true
+                                        ? currentplayprovider.song.artist!
+                                        : "Unknown Artist",
+                                    style: TextStyle(
+                                      color: currentplayprovider.Theme.text.withValues(alpha: 0.75),
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w500,
+                                      decoration: TextDecoration.none,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                ],
+                              ),
+                            ),
                               const SizedBox(width: 12),
                               IconButton(
                                 onPressed: () async {
@@ -834,7 +837,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
                     ),
                   ),
                 ),
-              ),
               // Top navigation bar with back arrow and title
               SafeArea(
                 child: Padding(
@@ -860,6 +862,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                             color: currentplayprovider.Theme.tab,
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
+                            decoration: TextDecoration.none,
                           ),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,

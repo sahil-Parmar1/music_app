@@ -505,81 +505,82 @@ class MiniPlayer extends StatelessWidget {
             MaterialPageRoute(builder: (context) => PlayerScreen()),
           );
         },
-        child: Hero(
-          tag: 'player',
-          child: Container(
-            decoration: BoxDecoration(
-              color: currentPlayProvider.Theme.background,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  ClipRRect(
+        child: Container(
+          decoration: BoxDecoration(
+            color: currentPlayProvider.Theme.background,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Hero(
+                  tag: 'current_song_artwork',
+                  child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: buildSongImage(base64Image: currentPlayProvider.song.Image),
                   ),
-                  SizedBox(width: 5),
-                  Expanded(
-                    child: Material(
-                      color: currentPlayProvider.Theme.background,
-                      child: Text(
-                        "${currentPlayProvider.song.title}",
-                        style: TextStyle(
-                          color: currentPlayProvider.Theme.text,
-                          fontSize: 18,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 2,
-                        softWrap: true,
+                ),
+                SizedBox(width: 5),
+                Expanded(
+                  child: Material(
+                    color: currentPlayProvider.Theme.background,
+                    child: Text(
+                      "${currentPlayProvider.song.title}",
+                      style: TextStyle(
+                        color: currentPlayProvider.Theme.text,
+                        fontSize: 18,
+                        decoration: TextDecoration.none,
                       ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                      softWrap: true,
                     ),
                   ),
-                  Row(
-                    children: [
-                      IconButton(
-                        onPressed: () => currentPlayProvider.prevsong(),
-                        icon: Icon(
-                          CupertinoIcons.backward_fill,
-                          color: currentPlayProvider.Theme.tab,
-                        ),
+                ),
+                Row(
+                  children: [
+                    IconButton(
+                      onPressed: () => currentPlayProvider.prevsong(),
+                      icon: Icon(
+                        CupertinoIcons.backward_fill,
+                        color: currentPlayProvider.Theme.tab,
                       ),
-                      ValueListenableBuilder<bool>(
-                        valueListenable: currentPlayProvider.isplaying,
-                        builder: (context, playing, child) {
-                          return AnimatedSwitcher(
-                            duration: Duration(milliseconds: 500),
-                            transitionBuilder: (child, animation) =>
-                                ScaleTransition(scale: animation, child: child),
-                            child: IconButton(
-                              key: ValueKey<bool>(playing),
-                              onPressed: () => playing
-                                  ? currentPlayProvider.pause()
-                                  : currentPlayProvider.playSong(),
-                              icon: Icon(
-                                playing
-                                    ? CupertinoIcons.pause_fill
-                                    : CupertinoIcons.play_arrow_solid,
-                                color: currentPlayProvider.Theme.tab,
-                                size: 30,
-                              ),
+                    ),
+                    ValueListenableBuilder<bool>(
+                      valueListenable: currentPlayProvider.isplaying,
+                      builder: (context, playing, child) {
+                        return AnimatedSwitcher(
+                          duration: Duration(milliseconds: 500),
+                          transitionBuilder: (child, animation) =>
+                              ScaleTransition(scale: animation, child: child),
+                          child: IconButton(
+                            key: ValueKey<bool>(playing),
+                            onPressed: () => playing
+                                ? currentPlayProvider.pause()
+                                : currentPlayProvider.playSong(),
+                            icon: Icon(
+                              playing
+                                  ? CupertinoIcons.pause_fill
+                                  : CupertinoIcons.play_arrow_solid,
+                              color: currentPlayProvider.Theme.tab,
+                              size: 30,
                             ),
-                          );
-                        },
+                          ),
+                        );
+                      },
+                    ),
+                    IconButton(
+                      onPressed: () => currentPlayProvider.nextsong(),
+                      icon: Icon(
+                        CupertinoIcons.forward_fill,
+                        color: currentPlayProvider.Theme.tab,
                       ),
-                      IconButton(
-                        onPressed: () => currentPlayProvider.nextsong(),
-                        icon: Icon(
-                          CupertinoIcons.forward_fill,
-                          color: currentPlayProvider.Theme.tab,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),
