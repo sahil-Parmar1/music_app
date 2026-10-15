@@ -13,7 +13,7 @@
 //      - The `MiniPlayer` widget (defined in `lib/screens/homescreen.dart`) automatically
 //        displays track controls (play/pause, next, previous) and track artwork whenever
 //        an active song is selected in `currentplay`.
-//      - Clicking on the `MiniPlayer` triggers a Hero transition into `PlayerScreen`.
+//      - Clicking on the `MiniPlayer` triggers a smooth Hero transition into `PlayerScreen`.
 //   3. Usage:
 //      - Wraps `HomeScreen`, `searchScreen`, and `playlistsongs` to ensure the music
 //        player stays reachable across all major navigation branches.

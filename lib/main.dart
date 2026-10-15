@@ -146,9 +146,18 @@ class _musicAppState extends State<musicApp> {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    final colortheme = Provider.of<Themeprovider>(context);
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: HomeScreen(),
+      theme: ThemeData(
+        scaffoldBackgroundColor: colortheme.theme.background,
+        canvasColor: colortheme.theme.background,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: colortheme.theme.tab,
+          surface: colortheme.theme.background,
+        ),
+      ),
+      home: const HomeScreen(),
     );
   }
 }

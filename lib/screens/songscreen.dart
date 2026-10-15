@@ -421,6 +421,53 @@ Widget buildSongImage({required String? base64Image, double width = 65, double h
   }
 }
 
+// Custom Hero flight shuttle builder for smooth, continuous corner radius morphing and glitch-free transitions
+Widget buildArtworkHeroShuttle(
+  BuildContext flightContext,
+  Animation<double> animation,
+  HeroFlightDirection flightDirection,
+  BuildContext fromHeroContext,
+  BuildContext toHeroContext,
+) {
+  // Use the Hero widget with full/unconstrained dimensions (from PlayerScreen)
+  // so the image scales and covers the flying Hero bounds cleanly at every frame.
+  final Hero targetHero = (flightDirection == HeroFlightDirection.push
+      ? toHeroContext.widget
+      : fromHeroContext.widget) as Hero;
+
+  final Widget rawChild = targetHero.child is ClipRRect
+      ? (targetHero.child as ClipRRect).child ?? targetHero.child
+      : targetHero.child;
+
+  final double startRadius =
+      flightDirection == HeroFlightDirection.push ? 10.0 : 16.0;
+  final double endRadius =
+      flightDirection == HeroFlightDirection.push ? 16.0 : 10.0;
+
+  final curvedAnimation = CurvedAnimation(
+    parent: animation,
+    curve: Curves.easeInOutCubic,
+  );
+
+  return AnimatedBuilder(
+    animation: curvedAnimation,
+    builder: (context, _) {
+      final double radius = Tween<double>(
+        begin: startRadius,
+        end: endRadius,
+      ).evaluate(curvedAnimation);
+
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(radius),
+        child: Material(
+          type: MaterialType.transparency,
+          child: rawChild,
+        ),
+      );
+    },
+  );
+}
+
 
 class PlayerScreen extends StatefulWidget {
 
@@ -434,10 +481,10 @@ class PlayerScreen extends StatefulWidget {
 class _PlayerScreenState extends State<PlayerScreen> {
   @override
   Widget build(BuildContext context) {
-    final currentplayprovider=Provider.of<currentplay>(context);
-    final songlistprovider=Provider.of<Songlistprovider>(context);
-    final playlist=Provider.of<playlistprovider>(context);
-    return  Material(
+    final currentplayprovider = Provider.of<currentplay>(context);
+    final playlist = Provider.of<playlistprovider>(context);
+    return Material(
+      color: currentplayprovider.Theme.background,
       child: Scaffold(
           backgroundColor: currentplayprovider.Theme.background,
           body: Stack(
@@ -459,10 +506,11 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                 curve: Curves.easeInOut,
                                 width: playing ? 300 : 250,
                                 height: playing ? 300 : 250,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(16),
-                                  child: Hero(
-                                    tag: 'current_song_artwork',
+                                child: Hero(
+                                  tag: 'current_song_artwork',
+                                  flightShuttleBuilder: buildArtworkHeroShuttle,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(16),
                                     child: buildSongImage(
                                       base64Image: currentplayprovider.song.Image,
                                       width: double.infinity,

@@ -25,7 +25,7 @@
 //      - Listens to `currentplay` provider. If a song is active:
 //          * Displays thumbnail artwork, title, previous, play/pause, and next buttons.
 //          * Tapping anywhere on the bar navigates to the full `PlayerScreen` via
-//            a smooth Hero transition.
+//            a smooth Hero transition with corner radius interpolation.
 // ==============================================================================
 
 import 'package:flutter/material.dart';
@@ -500,9 +500,24 @@ class MiniPlayer extends StatelessWidget {
       color: Colors.transparent,
       child: GestureDetector(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => PlayerScreen()),
+          Navigator.of(context).push(
+            PageRouteBuilder(
+              opaque: true,
+              transitionDuration: const Duration(milliseconds: 320),
+              reverseTransitionDuration: const Duration(milliseconds: 280),
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  const PlayerScreen(),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                return FadeTransition(
+                  opacity: CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeInOut,
+                  ),
+                  child: child,
+                );
+              },
+            ),
           );
         },
         child: Container(
@@ -517,9 +532,12 @@ class MiniPlayer extends StatelessWidget {
               children: [
                 Hero(
                   tag: 'current_song_artwork',
+                  flightShuttleBuilder: buildArtworkHeroShuttle,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                    child: buildSongImage(base64Image: currentPlayProvider.song.Image),
+                    child: buildSongImage(
+                      base64Image: currentPlayProvider.song.Image,
+                    ),
                   ),
                 ),
                 SizedBox(width: 5),
