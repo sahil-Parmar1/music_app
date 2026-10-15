@@ -193,33 +193,38 @@ Future<List<String>>  getfromShared_preference({required String key})async
 
 ///fecth the song list
 Future<void> fetchSongslist(context) async {
-  List<String> deviceLocations=await getfromShared_preference(key: "deviceLocations");
-  print("device locations==>>$deviceLocations");
-  final songProvider = Provider.of<Songlistprovider>(context,listen: false);
+  final songProvider = Provider.of<Songlistprovider>(context, listen: false);
+  songProvider.setIsScanning(true);
+  try {
+    List<String> deviceLocations = await getfromShared_preference(key: "deviceLocations");
+    print("device locations==>>$deviceLocations");
 
-  for (String path in deviceLocations) {
-     print("in path==>$path");
-     await for (String song in fetchSongs(path))
-       {
-         print("song ==>$song");
-         Song newsong=await fetchMP3Metadata(song);
-         print(newsong.Image);
-         print(newsong.path);
-         if(newsong.title == null)
-           {
-             newsong.title=pathforextract.basename(newsong.path);
-           }
+    for (String path in deviceLocations) {
+      print("in path==>$path");
+      await for (String song in fetchSongs(path)) {
+        print("song ==>$song");
+        Song newsong = await fetchMP3Metadata(song);
+        print(newsong.Image);
+        print(newsong.path);
+        if (newsong.title == null) {
+          newsong.title = pathforextract.basename(newsong.path);
+        }
 
-         print(newsong.album);
-         print(newsong.artist);
-         print(newsong.title);
-         print(newsong.genre);
-         songProvider.addSong(newsong);
-       }
-       print("all song are fecthed....");
+        print(newsong.album);
+        print(newsong.artist);
+        print(newsong.title);
+        print(newsong.genre);
+        songProvider.addSong(newsong);
+      }
+      print("all song are fecthed....");
+    }
+    await loadAlbum(context);
+    await loadArtist(context);
+  } catch (e) {
+    print("Error fetching song list: $e");
+  } finally {
+    songProvider.setIsScanning(false);
   }
- await loadAlbum(context);
-  await loadArtist(context);
 }
 
 ///fectching songs

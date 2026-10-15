@@ -47,14 +47,29 @@ class Songlistprovider extends ChangeNotifier
 {
   List<Song> Songlist=[];
   Box<Song> songBox;
-  Songlistprovider(this.songBox){
+  bool isScanning = false;
 
+  Songlistprovider(this.songBox){
+    if (songBox.isEmpty) {
+      isScanning = true;
+    }
     _loadSongs();
   }
+
+  void setIsScanning(bool scanning) {
+    if (isScanning != scanning) {
+      isScanning = scanning;
+      notifyListeners();
+    }
+  }
+
 //frist load songs from hive
   Future<void> _loadSongs()async
   {
-    Songlist=songBox!.values.toList();
+    Songlist=songBox.values.toList();
+    if (Songlist.isNotEmpty) {
+      isScanning = false;
+    }
     notifyListeners();
   }
 

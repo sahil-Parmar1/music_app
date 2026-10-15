@@ -365,7 +365,7 @@ class _HomeScreenState extends State<HomeScreen> {
           SliverPersistentHeader(
             pinned: true,
             delegate: _TabHeaderDelegate(
-              height: 52.0,
+              height: 48.0,
               backgroundColor: colortheme.theme.background,
               child: SizedBox(
                 height: 38,

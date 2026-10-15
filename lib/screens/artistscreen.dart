@@ -96,10 +96,16 @@ class _ArtistscreenState extends State<Artistscreen> with AutomaticKeepAliveClie
     super.build(context);
     final albumprovier=Provider.of<playlistprovider>(context);
     final colortheme=Provider.of<Themeprovider>(context);
-    return albumprovier.playlists.length>0?Wrap(
-      spacing: 1000.0,
-      runSpacing: 1.0,
-      children: albumprovier.playlists.map((playlistitem){
+    return MediaQuery.removePadding(
+      context: context,
+      removeTop: true,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.only(top: 4, bottom: 90),
+        child: albumprovier.playlists.isNotEmpty
+            ? Wrap(
+                spacing: 1000.0,
+                runSpacing: 1.0,
+                children: albumprovier.playlists.map((playlistitem){
         String boxname=playlistitem;
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
@@ -211,8 +217,11 @@ class _ArtistscreenState extends State<Artistscreen> with AutomaticKeepAliveClie
           ),
         );
 
-      }).toList(),
-    ):NoArtistsScreen(artist: true,);
+              }).toList(),
+            )
+          : NoArtistsScreen(artist: true),
+      ),
+    );
   }
 }
 

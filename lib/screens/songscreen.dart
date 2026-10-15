@@ -33,13 +33,12 @@
 // ==============================================================================
 
 import 'dart:convert';
-//import 'dart:ffi';
-import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:music_app_2/main.dart';
 import 'package:music_app_2/screens/albumscreen.dart';
 import 'package:music_app_2/screens/playlistscreen.dart';
+import 'package:music_app_2/theme/colors.dart';
 import 'package:provider/provider.dart';
 import 'package:music_app_2/provider_classes.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -76,67 +75,308 @@ class _SongState extends State<SongScreen> with AutomaticKeepAliveClientMixin {
   Widget build(BuildContext context) {
     super.build(context);
     final songProvider = Provider.of<Songlistprovider>(context);
-    final colortheme=Provider.of<Themeprovider>(context);
-    final currentplayprovider=Provider.of<currentplay>(context);
-    return RefreshIndicator(
-      onRefresh: Refresh,
-      child: songProvider.Songlist.length>0?ListView.builder(
-          itemCount: songProvider.Songlist.length,
-          itemBuilder: (context,index){
-            if(currentplayprovider.song.path == songProvider.Songlist[index].path)
-              return GestureDetector(
-                onTap: ()async{
+    final colortheme = Provider.of<Themeprovider>(context);
+    final currentplayprovider = Provider.of<currentplay>(context);
 
-                  Box<Song> box=Hive.box<Song>("songs");
-                  currentplayprovider.changebox(box);
-                  currentplayprovider.changesong(songProvider.Songlist[index]);
+    final songs = songProvider.Songlist;
+    final isScanning = songProvider.isScanning;
 
-                },
-                child: ListTile(
-                  title: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 70,
-                        height: 70,
-                        decoration: BoxDecoration(
-                          color: Colors.black,
-                          borderRadius: BorderRadius.circular(50)
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: ClipRRect(
-                              borderRadius: BorderRadius.circular(90),
-                              child: buildSongImage(base64Image:songProvider.Songlist[index].Image,width: 50,height: 50)),
-                        ),
+    Widget content;
+    if (songs.isEmpty) {
+      if (isScanning) {
+        // Shimmer skeleton list while scanning initial songs
+        content = ListView.builder(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(top: 4, bottom: 90),
+          itemCount: 8,
+          itemBuilder: (context, index) => ShimmerSongTile(theme: colortheme.theme),
+        );
+      } else {
+        content = ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(top: 4, bottom: 90),
+          children: [
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.45,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.music_off_rounded,
+                      size: 56,
+                      color: colortheme.theme.tab.withValues(alpha: 0.5),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      "No Songs Found",
+                      style: TextStyle(
+                        color: colortheme.theme.text,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
                       ),
-                      SizedBox(width: 10,),
-                      Expanded(child: Text("${songProvider.Songlist[index].title}",style: TextStyle(color: currentplayprovider.Theme.tab),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,))
-                    ],
-                  ),),
-              );
-              else
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      "Pull down to scan for music files",
+                      style: TextStyle(
+                        color: colortheme.theme.text.withValues(alpha: 0.6),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      }
+    } else {
+      // Append trailing shimmer tiles when more songs are actively being scanned one by one
+      final extraShimmerCount = isScanning ? 2 : 0;
+      final totalItemCount = songs.length + extraShimmerCount;
+
+      content = ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(top: 4, bottom: 90),
+        itemCount: totalItemCount,
+        itemBuilder: (context, index) {
+          if (index >= songs.length) {
+            // Trailing shimmer tile indicating ongoing loading
+            return ShimmerSongTile(theme: colortheme.theme);
+          }
+
+          final song = songs[index];
+          final isCurrent = currentplayprovider.song.path == song.path;
+
+          if (isCurrent) {
             return GestureDetector(
-              onTap: ()async{
-                Box<Song> box=Hive.box<Song>("songs");
+              onTap: () async {
+                Box<Song> box = Hive.box<Song>("songs");
                 currentplayprovider.changebox(box);
-                currentplayprovider.changesong(songProvider.Songlist[index]);
-                },
+                currentplayprovider.changesong(song);
+              },
               child: ListTile(
                 title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                       crossAxisAlignment: CrossAxisAlignment.center,
-                       children: [
-                       ClipRRect(
-                 borderRadius: BorderRadius.circular(10),
-                 child: buildSongImage(base64Image:songProvider.Songlist[index].Image)),
-                SizedBox(width: 10,),
-                 Expanded(child: Text("${songProvider.Songlist[index].title}",style: TextStyle(color: colortheme.theme.text),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,))
-                       ],
-                     ),),
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 70,
+                      height: 70,
+                      decoration: BoxDecoration(
+                        color: Colors.black,
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(90),
+                          child: buildSongImage(
+                            base64Image: song.Image,
+                            width: 50,
+                            height: 50,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        "${song.title}",
+                        style: TextStyle(color: currentplayprovider.Theme.tab),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                        softWrap: true,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             );
-      }):Center(child: Text("No Songs are Found! Restart the App",style: TextStyle(color: colortheme.theme.tab),),),
+          } else {
+            return GestureDetector(
+              onTap: () async {
+                Box<Song> box = Hive.box<Song>("songs");
+                currentplayprovider.changebox(box);
+                currentplayprovider.changesong(song);
+              },
+              child: ListTile(
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: buildSongImage(base64Image: song.Image),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        "${song.title}",
+                        style: TextStyle(color: colortheme.theme.text),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                        softWrap: true,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+        },
+      );
+    }
+
+    return MediaQuery.removePadding(
+      context: context,
+      removeTop: true,
+      child: RefreshIndicator(
+        onRefresh: Refresh,
+        color: colortheme.theme.tab,
+        backgroundColor: colortheme.theme.background,
+        child: content,
+      ),
+    );
+  }
+}
+
+// Animated shimmer effect driven by the active theme's colors
+class ThemeShimmer extends StatefulWidget {
+  final Widget child;
+  final ThemeColor theme;
+
+  const ThemeShimmer({
+    super.key,
+    required this.child,
+    required this.theme,
+  });
+
+  @override
+  State<ThemeShimmer> createState() => _ThemeShimmerState();
+}
+
+class _ThemeShimmerState extends State<ThemeShimmer> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = widget.theme.background.computeLuminance() < 0.5;
+    final baseColor = isDark
+        ? widget.theme.text.withValues(alpha: 0.10)
+        : widget.theme.text.withValues(alpha: 0.07);
+    final highlightColor = isDark
+        ? widget.theme.tab.withValues(alpha: 0.40)
+        : widget.theme.tab.withValues(alpha: 0.30);
+
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return ShaderMask(
+          blendMode: BlendMode.srcATop,
+          shaderCallback: (bounds) {
+            return LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              stops: const [0.0, 0.5, 1.0],
+              colors: [
+                baseColor,
+                highlightColor,
+                baseColor,
+              ],
+              transform: _SlidingGradientTransform(slidePercent: _controller.value),
+            ).createShader(bounds);
+          },
+          child: child,
+        );
+      },
+      child: widget.child,
+    );
+  }
+}
+
+class _SlidingGradientTransform extends GradientTransform {
+  final double slidePercent;
+  const _SlidingGradientTransform({required this.slidePercent});
+
+  @override
+  Matrix4? transform(Rect bounds, {TextDirection? textDirection}) {
+    return Matrix4.translationValues(bounds.width * (slidePercent * 2 - 1), 0.0, 0.0);
+  }
+}
+
+// Skeleton placeholder tile that shimmers with the current theme colors
+class ShimmerSongTile extends StatelessWidget {
+  final ThemeColor theme;
+
+  const ShimmerSongTile({super.key, required this.theme});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = theme.background.computeLuminance() < 0.5;
+    final blockColor = isDark
+        ? Colors.white.withValues(alpha: 0.08)
+        : Colors.black.withValues(alpha: 0.06);
+
+    return ThemeShimmer(
+      theme: theme,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: Row(
+          children: [
+            Container(
+              width: 65,
+              height: 65,
+              decoration: BoxDecoration(
+                color: blockColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    height: 16,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: blockColor,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    height: 12,
+                    width: 130,
+                    decoration: BoxDecoration(
+                      color: blockColor,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

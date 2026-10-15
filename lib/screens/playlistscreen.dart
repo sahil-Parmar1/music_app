@@ -54,8 +54,12 @@ class _PlaylistscreenState extends State<Playlistscreen> with AutomaticKeepAlive
     super.build(context);
     final colortheme=Provider.of<Themeprovider>(context);
     final playlist=Provider.of<playlistprovider>(context);
-    return SingleChildScrollView(
-      child: Column(
+    return MediaQuery.removePadding(
+      context: context,
+      removeTop: true,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.only(top: 4, bottom: 90),
+        child: Column(
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5.0),
@@ -307,10 +311,11 @@ class _PlaylistscreenState extends State<Playlistscreen> with AutomaticKeepAlive
                 );
 
              }).toList(),
-           )
+           ),
         ],
       ),
-    );
+    ),
+  );
   }
 }
 
