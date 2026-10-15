@@ -1,3 +1,18 @@
+// ==============================================================================
+// File: lib/store/songs.g.dart
+// ------------------------------------------------------------------------------
+// PURPOSE:
+//   Generated Hive TypeAdapter (`SongAdapter`) for the `Song` model class.
+//   Generated automatically via `hive_generator` and `build_runner`.
+//
+// FLOW & ROLE:
+//   - When `Hive.registerAdapter(SongAdapter())` is called in `main.dart`, this adapter
+//     tells Hive how to serialize (write) and deserialize (read) binary data representing
+//     `Song` objects to and from disk.
+//   - Regenerate this file whenever fields in `lib/store/songs.dart` change using:
+//       `dart run build_runner build --delete-conflicting-outputs`
+// ==============================================================================
+
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'songs.dart';

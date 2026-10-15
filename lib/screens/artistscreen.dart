@@ -1,3 +1,35 @@
+// ==============================================================================
+// File: lib/screens/artistscreen.dart
+// ------------------------------------------------------------------------------
+// PURPOSE:
+//   Extracts, stores, and presents songs grouped by their Artist ID3 metadata tag,
+//   and provides the fallback placeholder screen (`NoArtistsScreen`) for empty states.
+//
+// FLOW & ARCHITECTURE:
+//   1. Data Extraction (`loadArtist()`):
+//      - Reads all tracks from the master 'songs' Hive box.
+//      - Extracts distinct artist names and persists the list in `SharedPreferences`
+//        under the key 'artist'.
+//      - Creates or opens a dedicated Hive box for each artist name and saves the
+//        corresponding `Song` objects.
+//      - Invoked during app startup in `main.dart` and on pull-to-refresh in `SongScreen`.
+//
+//   2. Artist Presentation (`Artistscreen` widget):
+//      - Consumes `playlistprovider` initialized with the "artist" key.
+//      - Displays a list of artist cards featuring:
+//          * Cover art from the first song by the artist (or fallback 'assets/singer.png').
+//          * Artist name and dynamic song counter (`calculatesongs()`).
+//          * Swipe-to-delete support.
+//      - If empty, displays `NoArtistsScreen(artist: true)`.
+//
+//   3. Navigation:
+//      - Tapping an artist card opens its Hive box and navigates to `playlistsongs`,
+//        scoped to that artist's `Songlistprovider`.
+//
+//   4. NoArtistsScreen Component:
+//      - Reusable empty state view displayed when either no artists or no albums exist.
+// ==============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:music_app_2/main.dart';

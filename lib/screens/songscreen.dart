@@ -1,3 +1,37 @@
+// ==============================================================================
+// File: lib/screens/songscreen.dart
+// ------------------------------------------------------------------------------
+// PURPOSE:
+//   Contains the primary song listing screen (`SongScreen`), the full-screen music
+//   player interface (`PlayerScreen`), and media utilities like image decoders
+//   and file deletion checks.
+//
+// FLOW & ARCHITECTURE:
+//   1. SongScreen (Primary Library Tab):
+//      - Displays all songs loaded into `Songlistprovider`.
+//      - Pull-to-Refresh: Triggers `fetchSongslist()` to scan new tracks,
+//        `checkfordelete()` to prune deleted files from Hive, and `loadAlbum()`.
+//      - Song Selection: Tapping any item highlights it, switches the active Hive
+//        playback box to 'songs', and calls `currentplay.changesong(song)`.
+//
+//   2. buildSongImage Utility:
+//      - Decodes base64-encoded album artwork from ID3 tags.
+//      - Gracefully falls back to 'assets/default-music.png' if art is missing or invalid.
+//
+//   3. PlayerScreen (Full Player Interface):
+//      - Reached by tapping `MiniPlayer` from anywhere in the app.
+//      - Dynamic Theming: Styled using the randomized `currentplay.Theme` (S1-S6).
+//      - Visual Feedback: Animated album cover enlarges when playing and shrinks when paused.
+//      - Progress Slider: Subscribes to `currentplay.positionNotifier` for smooth seeking.
+//      - Favorite / Liked: Heart icon adds the current song to the 'likedsongs' Hive box.
+//      - Playlist Modal: Allows adding the active song to existing or new playlists.
+//      - Sleep Timer: Modal bottom sheet allowing 10m, 20m, or custom minute shutdown timers.
+//
+//   4. Data Synchronization Helpers:
+//      - `checkfordelete()`: Verifies local file existence; removes dead entries from Hive.
+//      - `addSongtoplaylist()`: Safely adds a song to any target Hive box without duplicates.
+// ==============================================================================
+
 import 'dart:convert';
 //import 'dart:ffi';
 import 'dart:convert';

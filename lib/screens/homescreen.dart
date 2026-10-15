@@ -1,3 +1,33 @@
+// ==============================================================================
+// File: lib/screens/homescreen.dart
+// ------------------------------------------------------------------------------
+// PURPOSE:
+//   Main navigation dashboard for the music app. Houses the top action bar,
+//   the theme selector, the tabbed page view for library browsing, and the
+//   persistent bottom `MiniPlayer`.
+//
+// FLOW & ARCHITECTURE:
+//   1. Layout & Scaffold:
+//      - Wrapped in `GlobalScaffold` to maintain uniform background colors and
+//        display the `MiniPlayer` at the bottom of the screen.
+//      - Built with a `NestedScrollView` featuring two sliver headers:
+//          * Header 1: App branding, Search action icon (navigates to `searchScreen`),
+//                      and Theme settings icon (opens a bottom sheet with color palettes).
+//          * Header 2: Horizontal scrollable tab buttons ("Songs", "Playlists", "Albums", "Artist").
+//
+//   2. PageView Navigation:
+//      - Page 0: `SongScreen`     - Complete list of all songs on device.
+//      - Page 1: `Playlistscreen` - Custom user-created playlists and Liked Songs.
+//      - Page 2: `Album`          - Songs organized by album tags.
+//      - Page 3: `Artistscreen`   - Songs organized by artist tags.
+//
+//   3. MiniPlayer Component:
+//      - Listens to `currentplay` provider. If a song is active:
+//          * Displays thumbnail artwork, title, previous, play/pause, and next buttons.
+//          * Tapping anywhere on the bar navigates to the full `PlayerScreen` via
+//            a smooth Hero transition.
+// ==============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:music_app_2/global_scaffold.dart';
 import 'package:music_app_2/main.dart';

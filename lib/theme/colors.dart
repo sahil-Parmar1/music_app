@@ -1,3 +1,28 @@
+// ==============================================================================
+// File: lib/theme/colors.dart
+// ------------------------------------------------------------------------------
+// PURPOSE:
+//   Defines the color theming architecture, base palette class (`ThemeColor`),
+//   and preset color palettes used across the entire music application.
+//
+// FLOW & ARCHITECTURE:
+//   1. Theme Structure (`ThemeColor`):
+//      - `background`: Screen background color.
+//      - `tab`: Accent/highlight color for active tabs, icons, buttons, and progress sliders.
+//      - `text`: Primary readable text color for titles, labels, and icons.
+//   2. Presets:
+//      - Dark Themes: `DarkBlue`, `DarkGreen`, `DarkPink`, `DarkOrange`, `DarkRed`.
+//      - Light Themes: `WhiteBlue`, `WhiteGreen`, `WhitePink`, `WhiteOrange`, `WhiteRed`.
+//      - Player Themes (`S1` - `S6`): Distinct palettes randomly assigned to the
+//        `PlayerScreen` in `currentplay.loadtheme()` each time a new track starts.
+//   3. Usage & Integration:
+//      - Managed globally by `Themeprovider` in `lib/provider_classes.dart`.
+//      - Selected theme is persisted in `SharedPreferences` under the key 'theme'.
+//      - Consumed across widgets via `Provider.of<Themeprovider>(context)`.
+//      - The theme selection bottom sheet is accessible from the top-right settings icon
+//        in `HomeScreen` (`lib/screens/homescreen.dart`).
+// ==============================================================================
+
 import 'package:flutter/material.dart';
 import 'dart:ui';
 

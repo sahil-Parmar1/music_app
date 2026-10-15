@@ -1,3 +1,31 @@
+// ==============================================================================
+// File: lib/screens/albumscreen.dart
+// ------------------------------------------------------------------------------
+// PURPOSE:
+//   Extracts, stores, and presents songs grouped by their Album ID3 metadata tag.
+//
+// FLOW & ARCHITECTURE:
+//   1. Data Extraction (`loadAlbum()`):
+//      - Reads all tracks from the master 'songs' Hive box.
+//      - Extracts distinct album names and persists the list in `SharedPreferences`
+//        under the key 'album'.
+//      - Creates or opens a dedicated Hive box for each album name and populates it
+//        with the corresponding `Song` objects.
+//      - Invoked during initial startup in `main.dart` and on pull-to-refresh in `SongScreen`.
+//
+//   2. Album Presentation (`Album` widget):
+//      - Consumes `playlistprovider` initialized with the "album" key.
+//      - Displays a list of album cards featuring:
+//          * Cover art from the first song in the album (via `loadFirstImage()`).
+//          * Album title and dynamic song counter (`calculatesongs()`).
+//          * Swipe-to-delete support to dismiss albums.
+//      - If empty, displays `NoArtistsScreen(artist: false)`.
+//
+//   3. Navigation:
+//      - Tapping an album card opens its Hive box and navigates to `playlistsongs`,
+//        scoped to that album's `Songlistprovider`.
+// ==============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:music_app_2/main.dart';

@@ -1,3 +1,33 @@
+// ==============================================================================
+// File: lib/screens/playlistscreen.dart
+// ------------------------------------------------------------------------------
+// PURPOSE:
+//   Manages user-created playlists, displays the pinned "Liked Songs" collection,
+//   provides playlist creation dialogs, and hosts the detail view (`playlistsongs`)
+//   showing the tracks inside any selected playlist, album, or artist collection.
+//
+// FLOW & ARCHITECTURE:
+//   1. Playlistscreen (Library Tab):
+//      - "Add Playlist" button: Prompts user via `showPlaylistDialog()` and registers
+//        the new name in `playlistprovider` and `SharedPreferences`.
+//      - "Liked Songs" card: Pinned entry pointing to the 'likedsongs' Hive box.
+//      - User Playlists: Rendered from `playlistprovider.playlists`. Supports swipe-to-delete
+//        (`Dismissible`), dynamic song count calculation (`calculatesongs()`), and thumbnail
+//        previews (`loadFirstImage()`).
+//
+//   2. playlistsongs Detail Screen:
+//      - Reusable track list screen for any Hive box (custom playlists, liked songs,
+//        albums, or artists).
+//      - Wrapped in `GlobalScaffold` to maintain background theme and `MiniPlayer`.
+//      - Displays a custom sliver app bar with the hero cover art of the first song.
+//      - Allows swipe-to-remove (`songProvider.deletesong()`) to delete tracks from that box.
+//      - Tapping any track sets `currentplay.changebox(box)` and starts playback from this queue.
+//
+//   3. Helper Functions:
+//      - `showPlaylistDialog()`: Dialog to input a new playlist title and optionally add a song immediately.
+//      - `loadFirstImage()`: Retrieves the base64 cover image of the first song in any Hive box.
+// ==============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:music_app_2/global_scaffold.dart';

@@ -1,3 +1,14 @@
+// ==============================================================================
+// File: test/widget_test.dart
+// ------------------------------------------------------------------------------
+// PURPOSE:
+//   Default Flutter widget smoke test placeholder.
+//
+// NOTE:
+//   The main app widget is named `musicApp` (defined in `lib/main.dart`), rather
+//   than the default Flutter template's `MyApp`.
+// ==============================================================================
+
 // This is a basic Flutter widget test.
 //
 // To perform an interaction with a widget in your test, use the WidgetTester

@@ -1,3 +1,30 @@
+// ==============================================================================
+// File: lib/screens/searchscreen.dart
+// ------------------------------------------------------------------------------
+// PURPOSE:
+//   Provides real-time search capabilities across the local music library,
+//   filtering songs by title as the user types.
+//
+// FLOW & ARCHITECTURE:
+//   1. Navigation & Setup:
+//      - Navigated to from the search icon in the `HomeScreen` header.
+//      - The navigation route injects a scoped `searchProvider` instance.
+//      - Wrapped in `GlobalScaffold` to maintain background theming and keep the
+//        `MiniPlayer` accessible while searching.
+//
+//   2. Search Interaction:
+//      - A rounded `TextFormField` in the `SliverAppBar` captures the user query.
+//      - `onChanged` triggers `search.searchlistfunction(query)` in `searchProvider`
+//        (`lib/provider_classes.dart`), performing case-insensitive matching against
+//        all songs in the master Hive 'songs' box.
+//
+//   3. Results Display & Playback:
+//      - Matching results are rendered in a `SliverList`.
+//      - The currently playing song is highlighted using `currentplay.Theme.tab`.
+//      - Tapping any search result switches the active playback box to 'songs'
+//        and starts playback via `currentplay.changesong(song)`.
+// ==============================================================================
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:music_app_2/global_scaffold.dart';

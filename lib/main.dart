@@ -1,3 +1,39 @@
+// ==============================================================================
+// File: lib/main.dart
+// ------------------------------------------------------------------------------
+// PURPOSE:
+//   Application entry point, initialization hub, device permission handler,
+//   and local storage media scanner.
+//
+// FLOW & LIFECYCLE:
+//   1. Initialization (`main()`):
+//      - Initializes Flutter bindings (`WidgetsFlutterBinding.ensureInitialized()`).
+//      - Initializes Hive local database (`Hive.initFlutter()`).
+//      - Registers `SongAdapter()` and opens the master 'songs' and 'likedsongs' boxes.
+//      - Sets up root state providers with `MultiProvider`:
+//          * `Themeprovider`: Global styling.
+//          * `Songlistprovider`: Song collection access.
+//          * `currentplay`: Music playback controller.
+//          * `playlistprovider`: Playlist manager.
+//      - Launches `musicApp()`.
+//
+//   2. Startup & Media Discovery (`startups()`):
+//      - In `_musicAppState.initState()`, executes `startups()`:
+//        a. Checks `SharedPreferences` for cached `deviceLocations`.
+//        b. If empty, requests storage permissions (`requestPermission()`) and finds
+//           local storage root directories (`getDeviceLocation()`, e.g., `/storage/emulated/0`).
+//        c. If the song library is empty, invokes `fetchSongslist()`:
+//           - Recursively scans device storage directories for `.mp3` files.
+//           - Extracts ID3 metadata (title, artist, album, genre, base64 cover art)
+//             using the `id3` package in `fetchMP3Metadata()`.
+//           - Adds discovered `Song` instances to the Hive box via `Songlistprovider`.
+//           - Calls `loadAlbum()` and `loadArtist()` to categorize songs into album
+//             and artist groupings.
+//
+//   3. UI Launch:
+//      - Renders `MaterialApp(home: HomeScreen())`.
+// ==============================================================================
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:music_app_2/screens/albumscreen.dart';
