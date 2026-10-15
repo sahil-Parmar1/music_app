@@ -89,6 +89,7 @@ class Songlistprovider extends ChangeNotifier
 class Themeprovider extends ChangeNotifier
 {
   ThemeColor theme=DarkBlue();
+  String currentThemeKey='darkgreen';
   Themeprovider(){
     _loadtheme();
   }
@@ -96,6 +97,7 @@ class Themeprovider extends ChangeNotifier
   {
     SharedPreferences prefs=await SharedPreferences.getInstance();
     String color=prefs.getString('theme')??'darkgreen';
+    currentThemeKey=color;
     switch(color)
     {
       case 'darkblue':theme=DarkBlue();

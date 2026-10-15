@@ -51,232 +51,382 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<String> pages=["Songs","Playlists","Albums","Artist"];
-  final PageController _pageController=PageController();
-  int _currentPage=0;
+  static const List<String> pages = ["Songs", "Playlists", "Albums", "Artist"];
+  static const List<IconData> pageIcons = [
+    CupertinoIcons.music_note_2,
+    CupertinoIcons.music_albums,
+    CupertinoIcons.square_stack_3d_down_right,
+    CupertinoIcons.person_2_fill,
+  ];
 
-  @override
-  Widget build(BuildContext context) {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
 
-    final colortheme=Provider.of<Themeprovider>(context);
-    final currentplayprovider=Provider.of<currentplay>(context);
-    double screenWidth = MediaQuery.of(context).size.width;
-    double screenHeight = MediaQuery.of(context).size.height;
-    return GlobalScaffold(child: NestedScrollView(
-      headerSliverBuilder: (context,innerBoxIsScrolled)=>[
+  Color _getContrastingTextColor(Color background) {
+    return background.computeLuminance() > 0.45 ? Colors.black87 : Colors.white;
+  }
 
-
-        SliverAppBar(
-          expandedHeight: MediaQuery.of(context).size.height * 0.08, // 8% of screen height
-          backgroundColor: colortheme.theme.background,
-          floating: true,
-          snap: true,
-          pinned: false,
-          flexibleSpace: FlexibleSpaceBar(
-            titlePadding: EdgeInsets.symmetric(
-              horizontal: MediaQuery.of(context).size.width * 0.03, // 3% of screen width
-              vertical: 8.0, // Fixed vertical padding for consistency
+  Widget _buildActionIconButton({
+    required IconData icon,
+    required String tooltip,
+    required Color color,
+    required Color backgroundColor,
+    required VoidCallback onTap,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(22),
+          child: Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              shape: BoxShape.circle,
             ),
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Profile Image
-                ClipOval(
-                  child: Image.asset(
-                    'assets/music-player.png',
-                    width: MediaQuery.of(context).size.width * 0.08, // 8% of screen width
-                    height: MediaQuery.of(context).size.width * 0.08,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                SizedBox(width: MediaQuery.of(context).size.width * 0.02), // 2% spacing
-
-                // Title
-                Expanded(
-                  child: Text(
-                    "Music Player",
-                    style: TextStyle(
-                      color: colortheme.theme.text,
-                      fontSize: MediaQuery.of(context).size.width * 0.045, // 4.5% of screen width
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-
-                 SizedBox(width: MediaQuery.of(context).size.width * 0.02), // 2% spacing
-
-                // Search Icon
-                IconButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ChangeNotifierProvider(
-                          create: (context) => searchProvider(),
-                          child: searchScreen(),
-                        ),
-                      ),
-                    );
-                  },
-                  icon: Icon(
-                    CupertinoIcons.search,
-                    size: MediaQuery.of(context).size.width * 0.06, // 6% of screen width
-                    color: colortheme.theme.text,
-                  ),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-
-                // Settings Icon
-                IconButton(
-                  onPressed: () {
-                    showModalBottomSheet(
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                      ),
-                      backgroundColor: colortheme.theme.background,
-                      context: context,
-                      builder: (context) {
-                        final Map<String, ThemeColor> themes = {
-                          "darkblue": DarkBlue(),
-                          "darkgreen": DarkGreen(),
-                          "darkpink": DarkPink(),
-                          "darkorange": DarkOrange(),
-                          "darkred": DarkRed(),
-                          "whiteblue": WhiteBlue(),
-                          "whitegreen": WhiteGreen(),
-                          "whitepink": WhitePink(),
-                          "whiteorange": WhiteOrange(),
-                          "whitered": WhiteRed(),
-                        };
-                        return Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                                child: Text(
-                                  "Select Theme",
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 23,
-                                    fontWeight: FontWeight.bold,
-                                    color: colortheme.theme.tab,
-                                  ),
-                                ),
-                              ),
-                              Wrap(
-                                spacing: 12,
-                                runSpacing: 12,
-                                alignment: WrapAlignment.center,
-                                children: themes.entries.map((entry) {
-                                  String themekey = entry.key;
-                                  ThemeColor theme = entry.value;
-                                  return GestureDetector(
-                                    onTap: () => colortheme.settheme(themekey),
-                                    child: AnimatedContainer(
-                                      duration: const Duration(milliseconds: 300),
-                                      width: 60,
-                                      height: 60,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: theme.tab,
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: colortheme.theme.background,
-                                            blurRadius: 8,
-                                            spreadRadius: 2,
-                                            offset: const Offset(2, 4),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                              const SizedBox(height: 20),
-                            ],
-                          ),
-                        );
-                      },
-                    );
-                  },
-                  icon: Icon(
-                    CupertinoIcons.settings,
-                    size: MediaQuery.of(context).size.width * 0.06, // 6% of screen width
-                    color: colortheme.theme.text,
-                  ),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
+            child: Icon(
+              icon,
+              size: 20,
+              color: color,
             ),
           ),
         ),
+      ),
+    );
+  }
 
-        SliverAppBar(
-          backgroundColor: colortheme.theme.background,
-          floating: false,
-          pinned: true,
-          toolbarHeight: MediaQuery.of(context).size.height * 0.02, // Adjusted height
-          flexibleSpace: FlexibleSpaceBar(
-            titlePadding: EdgeInsets.only(
-              left: MediaQuery.of(context).size.width * 0.02, // Dynamic padding
-              bottom: MediaQuery.of(context).size.height * 0.005,
-            ),
-            title: SizedBox(
-              height: MediaQuery.of(context).size.height * 0.06, // Responsive height
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: pages.length,
-                itemBuilder: (context, index) {
-                  bool isSelected = _currentPage == index;
+  void _showThemeModal(BuildContext context, Themeprovider colortheme) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      backgroundColor: colortheme.theme.background,
+      builder: (context) {
+        final darkThemes = <String, ({ThemeColor theme, String label})>{
+          "darkblue": (theme: DarkBlue(), label: "Dark Blue"),
+          "darkgreen": (theme: DarkGreen(), label: "Emerald"),
+          "darkpink": (theme: DarkPink(), label: "Magenta"),
+          "darkorange": (theme: DarkOrange(), label: "Sunset"),
+          "darkred": (theme: DarkRed(), label: "Crimson"),
+        };
+        final lightThemes = <String, ({ThemeColor theme, String label})>{
+          "whiteblue": (theme: WhiteBlue(), label: "Sky Blue"),
+          "whitegreen": (theme: WhiteGreen(), label: "Mint"),
+          "whitepink": (theme: WhitePink(), label: "Rose"),
+          "whiteorange": (theme: WhiteOrange(), label: "Peach"),
+          "whitered": (theme: WhiteRed(), label: "Coral"),
+        };
 
-                  return Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: MediaQuery.of(context).size.width * 0.01,
-                      vertical: MediaQuery.of(context).size.height * 0.005,
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Top drag handle
+                Container(
+                  width: 44,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: colortheme.theme.text.withValues(alpha: 0.25),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(CupertinoIcons.paintbrush_fill, color: colortheme.theme.tab, size: 22),
+                    const SizedBox(width: 8),
+                    Text(
+                      "Select Theme",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: colortheme.theme.text,
+                      ),
                     ),
-                    child: GestureDetector(
-                      onTap: () {
-                        _pageController.animateToPage(
-                          index,
-                          duration: Duration(milliseconds: 500),
-                          curve: Curves.easeInOut,
-                        );
-                        _currentPage = index;
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          vertical: MediaQuery.of(context).size.height * 0.012,
-                          horizontal: MediaQuery.of(context).size.width * 0.04,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(25),
-                          color: isSelected
-                              ? colortheme.theme.tab
-                              : colortheme.theme.background,
-                        ),
-                        child: Text(
-                          "${pages[index]}",
-                          style: TextStyle(
-                            fontSize: MediaQuery.of(context).size.width * 0.04,
-                            color: isSelected ? Colors.black : colortheme.theme.text,
-                          ),
-                        ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "DARK PALETTES",
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.2,
+                      color: colortheme.theme.text.withValues(alpha: 0.55),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 14,
+                  runSpacing: 12,
+                  alignment: WrapAlignment.center,
+                  children: darkThemes.entries.map((entry) {
+                    return _buildThemeItem(
+                      themeKey: entry.key,
+                      theme: entry.value.theme,
+                      label: entry.value.label,
+                      isSelected: colortheme.currentThemeKey == entry.key,
+                      onTap: () => colortheme.settheme(entry.key),
+                      activeColor: colortheme.theme.tab,
+                      textColor: colortheme.theme.text,
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 18),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "LIGHT PALETTES",
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.2,
+                      color: colortheme.theme.text.withValues(alpha: 0.55),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 14,
+                  runSpacing: 12,
+                  alignment: WrapAlignment.center,
+                  children: lightThemes.entries.map((entry) {
+                    return _buildThemeItem(
+                      themeKey: entry.key,
+                      theme: entry.value.theme,
+                      label: entry.value.label,
+                      isSelected: colortheme.currentThemeKey == entry.key,
+                      onTap: () => colortheme.settheme(entry.key),
+                      activeColor: colortheme.theme.tab,
+                      textColor: colortheme.theme.text,
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 14),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildThemeItem({
+    required String themeKey,
+    required ThemeColor theme,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+    required Color activeColor,
+    required Color textColor,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: theme.background,
+              border: Border.all(
+                color: isSelected ? theme.tab : theme.tab.withValues(alpha: 0.35),
+                width: isSelected ? 3.5 : 2.0,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: theme.tab.withValues(alpha: isSelected ? 0.45 : 0.15),
+                  blurRadius: isSelected ? 10 : 4,
+                  spreadRadius: isSelected ? 1 : 0,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: theme.tab,
+                ),
+                child: isSelected
+                    ? Icon(
+                        Icons.check,
+                        size: 14,
+                        color: _getContrastingTextColor(theme.tab),
+                      )
+                    : null,
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              color: isSelected ? activeColor : textColor.withValues(alpha: 0.75),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colortheme = Provider.of<Themeprovider>(context);
+
+    return GlobalScaffold(
+      child: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          // 1. Sleek Main Top Bar (No shadow, no extra labels)
+          SliverAppBar(
+            backgroundColor: colortheme.theme.background,
+            surfaceTintColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            floating: true,
+            snap: true,
+            pinned: false,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            toolbarHeight: 64,
+            titleSpacing: 16,
+            title: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset(
+                    'assets/music-player.png',
+                    width: 38,
+                    height: 38,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  "Music Player",
+                  style: TextStyle(
+                    color: colortheme.theme.text,
+                    fontSize: 21,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              _buildActionIconButton(
+                icon: CupertinoIcons.search,
+                tooltip: "Search songs",
+                color: colortheme.theme.text,
+                backgroundColor: colortheme.theme.text.withValues(alpha: 0.08),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChangeNotifierProvider(
+                        create: (context) => searchProvider(),
+                        child: const searchScreen(),
                       ),
                     ),
                   );
                 },
               ),
+              const SizedBox(width: 10),
+              _buildActionIconButton(
+                icon: CupertinoIcons.paintbrush_fill,
+                tooltip: "App Theme",
+                color: colortheme.theme.tab,
+                backgroundColor: colortheme.theme.tab.withValues(alpha: 0.15),
+                onTap: () => _showThemeModal(context, colortheme),
+              ),
+              const SizedBox(width: 16),
+            ],
+          ),
+
+          // 2. Pinned Flat Tab Bar (Proper padding, proper margins, no tricky shadows)
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _TabHeaderDelegate(
+              height: 52.0,
+              backgroundColor: colortheme.theme.background,
+              child: SizedBox(
+                height: 38,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  separatorBuilder: (_, __) => const SizedBox(width: 10),
+                  itemCount: pages.length,
+                  itemBuilder: (context, index) {
+                    final isSelected = _currentPage == index;
+                    return GestureDetector(
+                      onTap: () {
+                        _pageController.animateToPage(
+                          index,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                        setState(() {
+                          _currentPage = index;
+                        });
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeInOut,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          color: isSelected
+                              ? colortheme.theme.tab
+                              : colortheme.theme.text.withValues(alpha: 0.08),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              pageIcons[index],
+                              size: 16,
+                              color: isSelected
+                                  ? _getContrastingTextColor(colortheme.theme.tab)
+                                  : colortheme.theme.text.withValues(alpha: 0.8),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              pages[index],
+                              style: TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                color: isSelected
+                                    ? _getContrastingTextColor(colortheme.theme.tab)
+                                    : colortheme.theme.text.withValues(alpha: 0.8),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
           ),
-        ),
-
-      ],
+        ],
       body: PageView(
         controller: _pageController,
         onPageChanged: (index){
@@ -301,9 +451,39 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
+class _TabHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final Widget child;
+  final double height;
+  final Color backgroundColor;
 
+  _TabHeaderDelegate({
+    required this.child,
+    this.height = 56.0,
+    required this.backgroundColor,
+  });
 
+  @override
+  double get minExtent => height;
 
+  @override
+  double get maxExtent => height;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: backgroundColor,
+      alignment: Alignment.center,
+      child: child,
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _TabHeaderDelegate oldDelegate) {
+    return oldDelegate.backgroundColor != backgroundColor ||
+        oldDelegate.child != child ||
+        oldDelegate.height != height;
+  }
+}
 
 
 //mini player

@@ -55,48 +55,58 @@ class _searchScreenState extends State<searchScreen> {
               backgroundColor: colortheme.theme.background,
               pinned: true,
               automaticallyImplyLeading: false,
-              flexibleSpace: FlexibleSpaceBar(
-                titlePadding: EdgeInsets.only(left: 16, right: 16, bottom: 10), // Adjusts padding
-                title: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center, // Align items in center
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        if (Navigator.of(context).canPop()) {
-                          Navigator.of(context).pop();
-                        }
-
-                      },
-                      icon: Icon(CupertinoIcons.back,color: colortheme.theme.text,),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0), // Adjust vertical padding
-                        child: TextFormField(
-                          onChanged: (value) async {
-                            search.searchlistfunction(value);
-                          },
-                          style: TextStyle(
-                            color: colortheme.theme.text
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              toolbarHeight: 68,
+              titleSpacing: 8,
+              title: Row(
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      if (Navigator.of(context).canPop()) {
+                        Navigator.of(context).pop();
+                      }
+                    },
+                    icon: Icon(CupertinoIcons.back, color: colortheme.theme.text, size: 24),
+                  ),
+                  Expanded(
+                    child: Container(
+                      height: 46,
+                      decoration: BoxDecoration(
+                        color: colortheme.theme.tab.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: colortheme.theme.tab.withValues(alpha: 0.25),
+                          width: 1,
+                        ),
+                      ),
+                      child: TextField(
+                        autofocus: true,
+                        onChanged: (value) async {
+                          search.searchlistfunction(value);
+                        },
+                        style: TextStyle(color: colortheme.theme.text, fontSize: 15),
+                        textAlignVertical: TextAlignVertical.center,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          hintText: "Search songs...",
+                          hintStyle: TextStyle(
+                            color: colortheme.theme.text.withValues(alpha: 0.5),
+                            fontSize: 14,
                           ),
-                          decoration: InputDecoration(
-                            hintText: "Enter your Song name",
-                            hintStyle: TextStyle(color: colortheme.theme.text),
-
-                            suffixIcon: Icon(CupertinoIcons.search,color: colortheme.theme.text,),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(50),
-                              borderSide: BorderSide.none, // Removes default border
-                            ),
-                            contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Proper padding inside field
-                            filled: true,
-                            fillColor: colortheme.theme.tab.withOpacity(0.10),
+                          prefixIcon: Icon(
+                            CupertinoIcons.search,
+                            color: colortheme.theme.tab,
+                            size: 20,
                           ),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
               ),
             ),
 

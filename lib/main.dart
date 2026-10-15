@@ -146,8 +146,9 @@ class _musicAppState extends State<musicApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: HomeScreen()
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: HomeScreen(),
     );
   }
 }
