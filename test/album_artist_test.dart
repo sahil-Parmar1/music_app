@@ -88,4 +88,52 @@ void main() {
     final eminemBox = Hive.box<Song>('Eminem');
     expect(eminemBox.values.length, equals(1));
   });
+
+  test('loadAlbum prunes pre-existing duplicates and ignores different file paths with identical song titles', () async {
+    // 1. Simulate an album box that ALREADY contains 2 duplicates from prior buggy scans
+    final albumBox = await Hive.openBox<Song>('Brahmastra');
+    await albumBox.addAll([
+      Song(path: '/storage/emulated/0/Download/Deva Deva.mp3', title: 'Deva Deva (Pagalworld.pw)', artist: 'Arijit Singh', album: 'Brahmastra'),
+      Song(path: '/storage/emulated/0/Music/Deva Deva.mp3', title: 'Deva Deva (Pagalworld.pw)', artist: 'Arijit Singh', album: 'Brahmastra'),
+    ]);
+    expect(albumBox.values.length, equals(2)); // Confirmed 2 duplicates initially exist
+
+    // 2. Master songs box has files from different locations
+    final songBox = await Hive.openBox<Song>('songs');
+    await songBox.addAll([
+      Song(path: '/storage/emulated/0/Download/Deva Deva.mp3', title: 'Deva Deva (Pagalworld.pw)', artist: 'Arijit Singh', album: 'Brahmastra'),
+      Song(path: '/storage/emulated/0/Music/Deva Deva.mp3', title: 'Deva Deva (Pagalworld.pw)', artist: 'Arijit Singh', album: 'Brahmastra'),
+      Song(path: '/storage/emulated/0/Download/Kesariya.mp3', title: 'Kesariya', artist: 'Arijit Singh', album: 'Brahmastra'),
+    ]);
+
+    // 3. Run loadAlbum
+    await loadAlbum(null);
+
+    // 4. Verify that pre-existing duplicates were pruned and only unique tracks remain
+    expect(albumBox.values.length, equals(2)); // 'Deva Deva' (pruned to 1) + 'Kesariya' (1) = 2 unique tracks total!
+    final titles = albumBox.values.map((s) => s.title).toList();
+    expect(titles.where((t) => t == 'Deva Deva (Pagalworld.pw)').length, equals(1));
+    expect(titles, contains('Kesariya'));
+  });
+
+  test('loadArtist prunes pre-existing duplicates and ignores different file paths with identical song titles', () async {
+    // Simulate artist box with pre-existing duplicates
+    final artistBox = await Hive.openBox<Song>('Nakash Aziz');
+    await artistBox.addAll([
+      Song(path: '/Download/eyy_bidda.mp3', title: 'Eyy Bidda Ye Mera Adda', artist: 'Nakash Aziz', album: 'Pushpa'),
+      Song(path: '/Music/eyy_bidda.mp3', title: 'Eyy Bidda Ye Mera Adda', artist: 'Nakash Aziz', album: 'Pushpa'),
+    ]);
+    expect(artistBox.values.length, equals(2));
+
+    final songBox = await Hive.openBox<Song>('songs');
+    await songBox.addAll([
+      Song(path: '/Download/eyy_bidda.mp3', title: 'Eyy Bidda Ye Mera Adda', artist: 'Nakash Aziz', album: 'Pushpa'),
+      Song(path: '/Music/eyy_bidda.mp3', title: 'Eyy Bidda Ye Mera Adda', artist: 'Nakash Aziz', album: 'Pushpa'),
+    ]);
+
+    await loadArtist(null);
+
+    expect(artistBox.values.length, equals(1));
+    expect(artistBox.values.first.title, equals('Eyy Bidda Ye Mera Adda'));
+  });
 }

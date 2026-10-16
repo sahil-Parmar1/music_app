@@ -395,9 +395,9 @@ Future<void> showPlaylistDialog(context,{Song? song}) async{
 
 //playlistsongs screen
 class playlistsongs extends StatefulWidget {
- String nameofplaylist;
- String box;
-  playlistsongs({super.key,required this.nameofplaylist,required this.box});
+  final String nameofplaylist;
+  final String box;
+  const playlistsongs({super.key, required this.nameofplaylist, required this.box});
 
   @override
   State<playlistsongs> createState() => _playlistsongsState();
@@ -407,130 +407,228 @@ class _playlistsongsState extends State<playlistsongs> {
   @override
   Widget build(BuildContext context) {
     final songProvider = Provider.of<Songlistprovider>(context);
-    final colortheme=Provider.of<Themeprovider>(context);
-    final currentplayprovider=Provider.of<currentplay>(context);
+    final colortheme = Provider.of<Themeprovider>(context);
+    final currentplayprovider = Provider.of<currentplay>(context);
 
-    return GlobalScaffold(child: Material(
-      color: colortheme.theme.background,
-      child: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 250.0,
-            floating: false,
-            pinned: false,
-            snap: false,
-            automaticallyImplyLeading: true,
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back_ios, color: colortheme.theme.text, size: 24), // Custom icon
-              onPressed: () {
-                if (Navigator.of(context).canPop()) {
-                  Navigator.of(context).pop();
-                }
-                // Navigates back
-              },
+    // Defensive deduplication to ensure unique tracks in album/artist/playlist view
+    final Map<String, Song> uniqueSongsMap = {};
+    for (var s in songProvider.Songlist) {
+      final key = (s.title != null && s.title!.trim().isNotEmpty)
+          ? s.title!.trim().toLowerCase()
+          : s.path.trim().toLowerCase();
+      uniqueSongsMap.putIfAbsent(key, () => s);
+    }
+    final songs = uniqueSongsMap.values.toList();
+
+    return GlobalScaffold(
+      child: Material(
+        color: colortheme.theme.background,
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              pinned: true,
+              elevation: 0,
+              backgroundColor: colortheme.theme.background,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back_ios_new_rounded, color: colortheme.theme.text, size: 22),
+                onPressed: () {
+                  if (Navigator.of(context).canPop()) {
+                    Navigator.of(context).pop();
+                  }
+                },
+              ),
             ),
-            backgroundColor: colortheme.theme.background,
-            flexibleSpace: FlexibleSpaceBar(
-              centerTitle: true, // Ensures title is centered properly
-              title: Align(
-                alignment: Alignment.bottomCenter, // Centered horizontally at the bottom
-                child: Hero(
-                  tag: "${widget.nameofplaylist}",
-                  child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: songProvider.Songlist.isNotEmpty
-                          ? buildSongImage(base64Image: songProvider.Songlist[0].Image, width: 140, height: 140)
-                          : Image.asset("assets/music.png", width: 140, height: 140, fit: BoxFit.cover, gaplessPlayback: true),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 8),
+                    // Centered album / artist artwork
+                    Center(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.35),
+                              blurRadius: 18,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Hero(
+                          tag: widget.nameofplaylist,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: songs.isNotEmpty
+                                ? buildSongImage(
+                                    base64Image: songs[0].Image,
+                                    width: 170,
+                                    height: 170,
+                                  )
+                                : Image.asset(
+                                    "assets/music.png",
+                                    width: 170,
+                                    height: 170,
+                                    fit: BoxFit.cover,
+                                    gaplessPlayback: true,
+                                  ),
+                          ),
+                        ),
+                      ),
                     ),
+                    const SizedBox(height: 20),
+                    // Perfectly aligned and padded title
+                    Text(
+                      widget.nameofplaylist,
+                      style: TextStyle(
+                        color: colortheme.theme.text,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        height: 1.3,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 6),
+                    // Subtitle: Song count
+                    Text(
+                      "${songs.length} ${songs.length == 1 ? 'song' : 'songs'}",
+                      style: TextStyle(
+                        color: colortheme.theme.text.withValues(alpha: 0.65),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 22),
+                  ],
                 ),
               ),
             ),
+            SliverPadding(
+              padding: const EdgeInsets.only(bottom: 90, left: 16, right: 16),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final song = songs[index];
+                    final isCurrentPlaying = currentplayprovider.song.path == song.path;
+                    final activeAccent = colortheme.theme.tab;
 
-          ),
-          SliverAppBar(
-            expandedHeight: 30.0,
-            floating: true,
-            pinned: true,
-            toolbarHeight: 5.0,
-            automaticallyImplyLeading: false,
-            backgroundColor: colortheme.theme.background,
-            flexibleSpace: FlexibleSpaceBar(
-              centerTitle: true, // Ensures title is centered properly
-              title: Align(
-                  alignment: Alignment.bottomCenter, // Centered horizontally at the bottom
-                  child: SizedBox(
-                    width: double.infinity, // Ensures it takes full width
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        widget.nameofplaylist,
-                        style: TextStyle(color: colortheme.theme.text),
+                    return Dismissible(
+                      key: Key(song.path),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade700,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: const Icon(Icons.delete, color: Colors.white),
                       ),
-                    ),
-                  )
-
-
-              ),
-            ),
-
-          ),
-          SliverList(
-              delegate: SliverChildBuilderDelegate(
-                    (context, index){
-                  return Dismissible(
-                    key: Key(songProvider.Songlist[index].path),
-                    direction: DismissDirection.endToStart,
-                    background: Container(
-                      color: Colors.red,
-                      alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.symmetric(horizontal:20 ),
-                      child: const Icon(Icons.delete,color: Colors.white,),
-                    ),
-                    onDismissed: (direction){
-                      songProvider.deletesong(songProvider.Songlist[index]);
-                    },
-                    child: GestureDetector(
-                      onTap: ()async{
-                        Box<Song> box=Hive.box<Song>(widget.box);
-                        currentplayprovider.changebox(box);
-                        currentplayprovider.changesong(songProvider.Songlist[index]);
+                      onDismissed: (direction) {
+                        songProvider.deletesong(song);
                       },
-                      child: ListTile(
-                        title: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: 70,
-                              height: 70,
-                              decoration: BoxDecoration(
-                                color: currentplayprovider.song.path == songProvider.Songlist[index].path?Colors.black:Colors.transparent,
-                                borderRadius: currentplayprovider.song.path == songProvider.Songlist[index].path?BorderRadius.circular(50):BorderRadius.circular(20),
-                              ),
-                              child: Padding(
-                                padding: currentplayprovider.song.path == songProvider.Songlist[index].path?EdgeInsets.all(16.0):EdgeInsets.all(2.0),
-                                child: ClipRRect(
-                                    borderRadius: currentplayprovider.song.path == songProvider.Songlist[index].path?BorderRadius.circular(90):BorderRadius.circular(20),
-                                    child: buildSongImage(base64Image:songProvider.Songlist[index].Image,width: currentplayprovider.song.path == songProvider.Songlist[index].path?50:100,height: currentplayprovider.song.path == songProvider.Songlist[index].path?50:100)),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: Material(
+                          color: isCurrentPlaying
+                              ? activeAccent.withValues(alpha: 0.12)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(14),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(14),
+                            onTap: () async {
+                              Box<Song> box = Hive.box<Song>(widget.box);
+                              currentplayprovider.changebox(box);
+                              currentplayprovider.changesong(song);
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 56,
+                                    height: 56,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: isCurrentPlaying
+                                          ? Border.all(color: activeAccent, width: 2)
+                                          : null,
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(isCurrentPlaying ? 10 : 12),
+                                      child: buildSongImage(
+                                        base64Image: song.Image,
+                                        width: 56,
+                                        height: 56,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          song.title?.isNotEmpty == true ? song.title! : "Unknown Title",
+                                          style: TextStyle(
+                                            color: isCurrentPlaying
+                                                ? activeAccent
+                                                : colortheme.theme.text,
+                                            fontSize: 16,
+                                            fontWeight: isCurrentPlaying ? FontWeight.bold : FontWeight.w600,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          song.artist?.isNotEmpty == true ? song.artist! : "Unknown Artist",
+                                          style: TextStyle(
+                                            color: colortheme.theme.text.withValues(alpha: 0.65),
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w400,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (isCurrentPlaying)
+                                    ValueListenableBuilder<bool>(
+                                      valueListenable: currentplayprovider.isplaying,
+                                      builder: (context, playing, _) {
+                                        return Icon(
+                                          playing ? Icons.equalizer_rounded : Icons.play_arrow_rounded,
+                                          color: activeAccent,
+                                          size: 24,
+                                        );
+                                      },
+                                    ),
+                                ],
                               ),
                             ),
-                            SizedBox(width: 10,),
-                            Expanded(child: Text("${songProvider.Songlist[index].title}",style: TextStyle(color: currentplayprovider.song.path == songProvider.Songlist[index].path?currentplayprovider.Theme.tab:colortheme.theme.text),overflow: TextOverflow.ellipsis,maxLines: 2,softWrap: true,))
-                          ],
-                        ),),
-                    ),
-                  );
-
-
-                },
-                childCount: songProvider.Songlist.length,
-              )
-          ),
-
-        ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  childCount: songs.length,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
-    ));
-
+    );
   }
 }
 

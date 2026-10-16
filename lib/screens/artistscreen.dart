@@ -72,13 +72,46 @@ Future<void> loadArtist(context)async
       continue;
     }
 
-    bool alreadyExists = false;
-    for (var check in box.values) {
-      if (song.path == check.path) {
-        alreadyExists = true;
-        break;
+    // Prune existing duplicates inside this artist's box
+    Set<String> seenTitles = {};
+    Set<String> seenPaths = {};
+    List<dynamic> keysToDelete = [];
+
+    for (var key in box.keys) {
+      final existing = box.get(key);
+      if (existing == null) {
+        keysToDelete.add(key);
+        continue;
+      }
+      final normPath = existing.path.trim().toLowerCase();
+      final normTitle = (existing.title ?? '').trim().toLowerCase();
+
+      bool isDup = false;
+      if (normPath.isNotEmpty && seenPaths.contains(normPath)) {
+        isDup = true;
+      } else if (normTitle.isNotEmpty && seenTitles.contains(normTitle)) {
+        isDup = true;
+      }
+
+      if (isDup) {
+        keysToDelete.add(key);
+      } else {
+        if (normPath.isNotEmpty) seenPaths.add(normPath);
+        if (normTitle.isNotEmpty) seenTitles.add(normTitle);
       }
     }
+
+    for (var key in keysToDelete) {
+      await box.delete(key);
+    }
+
+    // Check if the current song is already present for this artist
+    final songNormPath = song.path.trim().toLowerCase();
+    final songNormTitle = (song.title ?? '').trim().toLowerCase();
+
+    bool alreadyExists = seenPaths.contains(songNormPath) ||
+        (songNormTitle.isNotEmpty && seenTitles.contains(songNormTitle));
+
     if (!alreadyExists) {
       Song newsong = Song(
         path: song.path,
@@ -90,6 +123,8 @@ Future<void> loadArtist(context)async
         artist: artistName,
       );
       await box.add(newsong);
+      if (songNormPath.isNotEmpty) seenPaths.add(songNormPath);
+      if (songNormTitle.isNotEmpty) seenTitles.add(songNormTitle);
     }
   }
 

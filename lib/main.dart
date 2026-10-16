@@ -214,12 +214,32 @@ Future<void> fetchSongslist(context) async {
   final songProvider = Provider.of<Songlistprovider>(context, listen: false);
   songProvider.setIsScanning(true);
   try {
-    List<String> deviceLocations = await getfromShared_preference(key: "deviceLocations");
+    List<String> rawLocations = await getfromShared_preference(key: "deviceLocations");
+    Set<String> cleanLocations = {};
+    for (String loc in rawLocations) {
+      String clean = loc.trim();
+      if (clean.endsWith('/') && clean.length > 1) {
+        clean = clean.substring(0, clean.length - 1);
+      }
+      if (clean.isNotEmpty) cleanLocations.add(clean);
+    }
+    // Filter out subdirectories if parent directory is already in the scan list
+    List<String> deviceLocations = cleanLocations.where((loc) {
+      return !cleanLocations.any((parent) => parent != loc && loc.startsWith('$parent/'));
+    }).toList();
+
     print("device locations==>>$deviceLocations");
+
+    Set<String> seenDiscoveredPaths = {};
 
     for (String path in deviceLocations) {
       print("in path==>$path");
       await for (String song in fetchSongs(path)) {
+        final normPath = song.trim().toLowerCase();
+        if (normPath.isNotEmpty && !seenDiscoveredPaths.add(normPath)) {
+          continue; // Already scanned this path
+        }
+
         print("song ==>$song");
         Song newsong = await fetchMP3Metadata(song);
         print(newsong.Image);

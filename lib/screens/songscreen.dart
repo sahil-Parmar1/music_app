@@ -1042,9 +1042,25 @@ Future<void> checkfordelete(context)async
 void addSongtoplaylist(Song song,var songbox) {
   List<Song> songList = songbox.values.cast<Song>().toList(); // Ensure correct type
 
-  // Check if the song is already in the playlist
+  final newPath = song.path.trim().toLowerCase();
+  final newTitle = (song.title ?? '').trim().toLowerCase();
+  final newArtist = (song.artist ?? '').trim().toLowerCase();
+
+  // Check if the song is already in the playlist by path or title+artist
   for (Song oldSong in songList) {
-    if (oldSong.path == song.path) return;
+    final oldPath = oldSong.path.trim().toLowerCase();
+    final oldTitle = (oldSong.title ?? '').trim().toLowerCase();
+    final oldArtist = (oldSong.artist ?? '').trim().toLowerCase();
+
+    if ((newPath.isNotEmpty && oldPath == newPath) ||
+        (newTitle.isNotEmpty &&
+            oldTitle == newTitle &&
+            newArtist.isNotEmpty &&
+            newArtist != 'unknown' &&
+            newArtist != 'unknown artist' &&
+            oldArtist == newArtist)) {
+      return;
+    }
   }
 // Create a new instance before adding
   Song newSong = Song(path: song.path,

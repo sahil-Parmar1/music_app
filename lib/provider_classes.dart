@@ -67,6 +67,7 @@ class Songlistprovider extends ChangeNotifier
 //frist load songs from hive
   Future<void> _loadSongs()async
   {
+    _pruneDuplicateSongs();
     Songlist=songBox.values.toList();
     if (Songlist.isNotEmpty) {
       isScanning = false;
@@ -74,13 +75,80 @@ class Songlistprovider extends ChangeNotifier
     notifyListeners();
   }
 
+  void _pruneDuplicateSongs() {
+    Set<String> seenPaths = {};
+    Set<String> seenTrackSignatures = {};
+    List<dynamic> keysToDelete = [];
+
+    for (var key in songBox.keys) {
+      final song = songBox.get(key);
+      if (song == null) {
+        keysToDelete.add(key);
+        continue;
+      }
+      final normPath = song.path.trim().toLowerCase();
+      final normTitle = (song.title ?? '').trim().toLowerCase();
+      final normArtist = (song.artist ?? '').trim().toLowerCase();
+      final normAlbum = (song.album ?? '').trim().toLowerCase();
+
+      bool isDuplicate = false;
+      if (normPath.isNotEmpty && seenPaths.contains(normPath)) {
+        isDuplicate = true;
+      } else if (normTitle.isNotEmpty &&
+          normArtist.isNotEmpty &&
+          normArtist != 'unknown' &&
+          normArtist != 'unknown artist' &&
+          seenTrackSignatures.contains('$normTitle|$normArtist')) {
+        isDuplicate = true;
+      } else if (normTitle.isNotEmpty &&
+          normAlbum.isNotEmpty &&
+          normAlbum != 'unknown' &&
+          normAlbum != 'unknown album' &&
+          seenTrackSignatures.contains('$normTitle||$normAlbum')) {
+        isDuplicate = true;
+      }
+
+      if (isDuplicate) {
+        keysToDelete.add(key);
+      } else {
+        if (normPath.isNotEmpty) seenPaths.add(normPath);
+        if (normTitle.isNotEmpty && normArtist.isNotEmpty) {
+          seenTrackSignatures.add('$normTitle|$normArtist');
+        }
+        if (normTitle.isNotEmpty && normAlbum.isNotEmpty) {
+          seenTrackSignatures.add('$normTitle||$normAlbum');
+        }
+      }
+    }
+
+    for (var key in keysToDelete) {
+      songBox.delete(key);
+    }
+  }
+
   void Refresh()
   {
     _loadSongs();
   }
   void addSong(Song song) {
+    final newPath = song.path.trim().toLowerCase();
+    final newTitle = (song.title ?? '').trim().toLowerCase();
+    final newArtist = (song.artist ?? '').trim().toLowerCase();
+    final newAlbum = (song.album ?? '').trim().toLowerCase();
+
     for (Song oldsong in Songlist) {
-      if (oldsong.path == song.path) {
+      final oldPath = oldsong.path.trim().toLowerCase();
+      final oldTitle = (oldsong.title ?? '').trim().toLowerCase();
+      final oldArtist = (oldsong.artist ?? '').trim().toLowerCase();
+      final oldAlbum = (oldsong.album ?? '').trim().toLowerCase();
+
+      final isSamePath = newPath.isNotEmpty && oldPath == newPath;
+      final isSameTrack = newTitle.isNotEmpty &&
+          ((newArtist.isNotEmpty && newArtist != 'unknown' && newArtist != 'unknown artist' && oldArtist == newArtist) ||
+           (newAlbum.isNotEmpty && newAlbum != 'unknown' && newAlbum != 'unknown album' && oldAlbum == newAlbum)) &&
+          oldTitle == newTitle;
+
+      if (isSamePath || isSameTrack) {
         bool needsUpdate = false;
         if ((oldsong.artist == null || oldsong.artist == 'Unknown' || oldsong.artist == 'Unknown Artist') &&
             song.artist != null && song.artist != 'Unknown' && song.artist != 'Unknown Artist') {
@@ -502,13 +570,22 @@ class playlistprovider extends ChangeNotifier
     Box<Song> box;
     bool isBoxOpen = Hive.isBoxOpen(boxname);
     if (isBoxOpen) {
-     box=Hive.box<Song>(boxname);
+      box=Hive.box<Song>(boxname);
     } else {
-    box=await Hive.openBox<Song>(boxname);
+      box=await Hive.openBox<Song>(boxname);
     }
-     int len=box.values.length;
-      return len;
+    Set<String> uniqueTracks = {};
+    int count = 0;
+    for (var s in box.values) {
+      final key = (s.title != null && s.title!.trim().isNotEmpty)
+          ? s.title!.trim().toLowerCase()
+          : s.path.trim().toLowerCase();
+      if (uniqueTracks.add(key)) {
+        count++;
+      }
     }
+    return count;
+  }
 }
 
 
