@@ -1,4 +1,4 @@
-package com.example.music_app_2
+package com.sahilparmar.musicplayer
 
 import com.ryanheise.audioservice.AudioServiceActivity
 

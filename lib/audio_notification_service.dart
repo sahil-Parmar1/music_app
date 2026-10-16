@@ -160,7 +160,7 @@ Future<AudioPlayerHandler?> initAudioNotificationService() async {
     return await AudioService.init(
       builder: () => AudioPlayerHandler(),
       config: const AudioServiceConfig(
-        androidNotificationChannelId: 'com.example.music_app_2.audio',
+        androidNotificationChannelId: 'com.sahilparmar.musicplayer.audio',
         androidNotificationChannelName: 'Music Playback',
         androidNotificationChannelDescription: 'Music playback controls',
         androidNotificationOngoing: false,

@@ -10,7 +10,7 @@
 
 
     <application
-        android:label="music_app_2"
+        android:label="Music Player"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:requestLegacyExternalStorage="true"

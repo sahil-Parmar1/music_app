@@ -1,6 +1,6 @@
 {
-    "name": "music_app_2",
-    "short_name": "music_app_2",
+    "name": "Music Player",
+    "short_name": "Music Player",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
