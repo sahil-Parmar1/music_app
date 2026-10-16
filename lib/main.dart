@@ -51,6 +51,7 @@ import 'package:id3/id3.dart';
 import 'screens/homescreen.dart';
 import 'package:path/path.dart' as pathforextract;
 import 'screens/playlistscreen.dart';
+import 'package:music_app_2/audio_notification_service.dart';
 
 void main()async
 {
@@ -60,11 +61,12 @@ void main()async
   Hive.registerAdapter(SongAdapter());
   Box<Song> songBox=await Hive.openBox<Song>('songs');
   await Hive.openBox<Song>('likedsongs');
+  final AudioPlayerHandler? audioHandler = await initAudioNotificationService();
   runApp(
       MultiProvider(providers: [
         ChangeNotifierProvider(create: (context) =>Themeprovider()),
         ChangeNotifierProvider(create: (context) =>Songlistprovider(songBox)),
-        ChangeNotifierProvider(create: (context) =>currentplay(songBox)),
+        ChangeNotifierProvider(create: (context) =>currentplay(songBox, audioHandler: audioHandler)),
         ChangeNotifierProvider(create: (context)=>playlistprovider("playlists"),
           child: Playlistscreen(),
         ),
@@ -172,6 +174,11 @@ Future<void> requestPermission() async {
     if (await Permission.manageExternalStorage.isDenied ||
         await Permission.manageExternalStorage.isPermanentlyDenied) {
       await Permission.manageExternalStorage.request();
+    }
+
+    if (await Permission.notification.isDenied ||
+        await Permission.notification.isPermanentlyDenied) {
+      await Permission.notification.request();
     }
   }
 }

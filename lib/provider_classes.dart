@@ -42,6 +42,7 @@ import 'main.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'dart:io';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:music_app_2/audio_notification_service.dart';
 
 class Songlistprovider extends ChangeNotifier
 {
@@ -163,8 +164,12 @@ class currentplay extends ChangeNotifier
   Timer? _timer;
   Timer? get timer => _timer;
   ValueNotifier<int> secondsRemaining=ValueNotifier<int>(0);
-  currentplay(this.songBox)
+  final AudioPlayerHandler? audioHandler;
+
+  currentplay(this.songBox, {this.audioHandler})
   {
+      _initAudioNotificationCallbacks();
+
       player.onPositionChanged.listen((Duration newPosition){
         positionNotifier.value=newPosition;
         if(duration != null && newPosition.inSeconds >= duration!.inSeconds -2)
@@ -174,6 +179,67 @@ class currentplay extends ChangeNotifier
           }
       });
 
+      player.onDurationChanged.listen((Duration newDuration){
+        duration = newDuration;
+        _syncNotificationMediaItem();
+      });
+
+      player.onPlayerStateChanged.listen((PlayerState state){
+        if (state == PlayerState.playing && !isplaying.value) {
+          isplaying.value = true;
+          _syncNotificationPlaybackState(isPlaying: true);
+        } else if (state == PlayerState.paused && isplaying.value) {
+          isplaying.value = false;
+          _syncNotificationPlaybackState(isPlaying: false);
+        }
+      });
+  }
+
+  void _initAudioNotificationCallbacks() {
+    if (audioHandler == null) return;
+    audioHandler!.onPlay = () async {
+      await resume();
+    };
+    audioHandler!.onPause = () async {
+      await pause();
+    };
+    audioHandler!.onNext = () async {
+      nextsong();
+    };
+    audioHandler!.onPrev = () async {
+      prevsong();
+    };
+    audioHandler!.onSeek = (position) async {
+      seektoposition(position.inSeconds.toDouble());
+    };
+    audioHandler!.onStop = () async {
+      stop();
+    };
+  }
+
+  Future<void> _syncNotificationMediaItem() async {
+    if (audioHandler == null || song.path.isEmpty) return;
+    Uri? artUri = await getArtworkUri(song);
+    artUri ??= await getDefaultArtworkUri();
+
+    audioHandler!.setSongMetadata(
+      song: song,
+      duration: duration,
+      artUri: artUri,
+    );
+  }
+
+  void _syncNotificationPlaybackState({
+    required bool isPlaying,
+    Duration? position,
+    bool isStopped = false,
+  }) {
+    if (audioHandler == null) return;
+    audioHandler!.updatePlaybackState(
+      isPlaying: isPlaying,
+      position: position ?? positionNotifier.value,
+      isStopped: isStopped,
+    );
   }
 
   void changebox(Box<Song> newbox)async
@@ -188,34 +254,45 @@ class currentplay extends ChangeNotifier
   Duration _currentpositioin=Duration.zero;
   Duration get position => _currentpositioin;
 
-  void playSong()async
+  Future<void> playSong({bool forceRestart = false})async
   {
-
+       if (song.path.isEmpty) return;
        try
            {
-             await player.play(DeviceFileSource(song.path));
-             duration= await  player.getDuration();
+             if (!forceRestart && player.state == PlayerState.paused) {
+               await player.resume();
+             } else {
+               await player.play(DeviceFileSource(song.path));
+               duration= await  player.getDuration();
+             }
              print("duration of song :${duration?.inMinutes}:${duration?.inSeconds.remainder(60)}");
              isplaying.value=true;
+             await _syncNotificationMediaItem();
+             _syncNotificationPlaybackState(isPlaying: true);
            }
         catch(e)
         {
           print("error in $e");
           showToast("song not found ! try to Refresh it");
         }
-
-
   }
-  void stop()async
+
+  Future<void> resume() async {
+    await playSong();
+  }
+
+  Future<void> stop()async
   {
     await player.stop();
     isplaying.value=false;
+    _syncNotificationPlaybackState(isPlaying: false, isStopped: true);
     //notifyListeners();
   }
-  void pause()async
+  Future<void> pause()async
   {
     await player.pause();
     isplaying.value=false;
+    _syncNotificationPlaybackState(isPlaying: false);
     //notifyListeners();
   }
 
@@ -255,7 +332,7 @@ class currentplay extends ChangeNotifier
     song=newsong;
     positionNotifier.value=Duration.zero;
     loadtheme();
-    playSong();
+    playSong(forceRestart: true);
   }
 
   //function for next song
@@ -327,7 +404,10 @@ class currentplay extends ChangeNotifier
       player.seek(newposition);
       print("seeking to $newposition");
       positionNotifier.value=newposition;
-
+      _syncNotificationPlaybackState(
+        isPlaying: isplaying.value,
+        position: newposition,
+      );
   }
 
 }

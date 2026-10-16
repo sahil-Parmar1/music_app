@@ -45,6 +45,8 @@ dependencies:
   audioplayers: ^6.4.0
   fluttertoast: ^8.2.12
   flutter_launcher_icons: ^0.14.3
+  audio_service: ^0.18.19
+  audio_service_win: ^0.0.3
 
 dev_dependencies:
   flutter_test:
