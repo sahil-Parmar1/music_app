@@ -45,39 +45,55 @@ import 'package:provider/provider.dart';
 Future<void> loadArtist(context)async
 {
   Box<Song> songbox=Hive.box<Song>("songs");
-  List<String> album=await getfromShared_preference(key: "artist")??[];
+  List<String> existingArtists=await getfromShared_preference(key: "artist");
+  Set<String> artistSet = existingArtists.toSet();
   List<Song> songlist=songbox.values.toList();
 
   for(var song in songlist)
   {
-    if(!album.contains(song.artist))
-    {
-      album.add(song.artist??"Unknown");
-    }
-    bool isBoxOpen = Hive.isBoxOpen(song.artist??"Unknown");
+    String rawArtist = (song.artist != null && song.artist!.trim().isNotEmpty)
+        ? song.artist!.trim()
+        : "Unknown Artist";
+    String artistName = rawArtist.replaceAll(RegExp(r'[\\/:*?"<>|]'), ' ').trim();
+    if (artistName.isEmpty) artistName = "Unknown Artist";
+
+    artistSet.add(artistName);
+
+    bool isBoxOpen = Hive.isBoxOpen(artistName);
     Box<Song> box;
-    if (isBoxOpen) {
-      box=Hive.box<Song>(song.artist??"Unknown");
-    } else {
-      box=await Hive.openBox(song.artist??"Unknown");
+    try {
+      if (isBoxOpen) {
+        box = Hive.box<Song>(artistName);
+      } else {
+        box = await Hive.openBox<Song>(artistName);
+      }
+    } catch (e) {
+      print("Error opening Hive box for artist $artistName: $e");
+      continue;
     }
-    Song newsong=Song(
-      path: song.path,
-      album: song.album,
-      title: song.title,
-      Image: song.Image,
-      publisher: song.publisher,
-      genre: song.genre,
-      artist: song.artist,
-    );
-    List<Song> oldsong=box.values.toList();
-    for(var check in oldsong)
-      if(newsong.path == check.path)
-        return;
-    box.add(newsong);
+
+    bool alreadyExists = false;
+    for (var check in box.values) {
+      if (song.path == check.path) {
+        alreadyExists = true;
+        break;
+      }
+    }
+    if (!alreadyExists) {
+      Song newsong = Song(
+        path: song.path,
+        album: song.album,
+        title: song.title,
+        Image: song.Image,
+        publisher: song.publisher,
+        genre: song.genre,
+        artist: artistName,
+      );
+      await box.add(newsong);
+    }
   }
 
-  savetoShared_preference(string: album, key: "artist"); //save to local storage
+  savetoShared_preference(string: artistSet.toList(), key: "artist"); //save to local storage
 }
 
 class Artistscreen extends StatefulWidget {
@@ -92,6 +108,16 @@ class _ArtistscreenState extends State<Artistscreen> with AutomaticKeepAliveClie
   bool get wantKeepAlive => true;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Provider.of<playlistprovider>(context, listen: false).loadplaylists();
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     super.build(context);
     final albumprovier=Provider.of<playlistprovider>(context);
@@ -99,9 +125,17 @@ class _ArtistscreenState extends State<Artistscreen> with AutomaticKeepAliveClie
     return MediaQuery.removePadding(
       context: context,
       removeTop: true,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.only(top: 4, bottom: 90),
-        child: albumprovier.playlists.isNotEmpty
+      child: RefreshIndicator(
+        onRefresh: () async {
+          await loadArtist(context);
+          if (mounted) {
+            Provider.of<playlistprovider>(context, listen: false).loadplaylists();
+          }
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(top: 4, bottom: 90),
+          child: albumprovier.playlists.isNotEmpty
             ? Wrap(
                 spacing: 1000.0,
                 runSpacing: 1.0,
@@ -220,6 +254,7 @@ class _ArtistscreenState extends State<Artistscreen> with AutomaticKeepAliveClie
               }).toList(),
             )
           : NoArtistsScreen(artist: true),
+        ),
       ),
     );
   }

@@ -37,6 +37,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:music_app_2/main.dart';
 import 'package:music_app_2/screens/albumscreen.dart';
+import 'package:music_app_2/screens/artistscreen.dart';
 import 'package:music_app_2/screens/playlistscreen.dart';
 import 'package:music_app_2/theme/colors.dart';
 import 'package:provider/provider.dart';
@@ -70,6 +71,7 @@ class _SongState extends State<SongScreen> with AutomaticKeepAliveClientMixin {
     await fetchSongslist(context);
     await checkfordelete(context);
     await loadAlbum(context);
+    await loadArtist(context);
   }
   @override
   Widget build(BuildContext context) {

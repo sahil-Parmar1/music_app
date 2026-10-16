@@ -79,13 +79,38 @@ class Songlistprovider extends ChangeNotifier
     _loadSongs();
   }
   void addSong(Song song) {
-    for(Song oldsong in Songlist)
-      {
-        if(oldsong.path == song.path)
-          return;
+    for (Song oldsong in Songlist) {
+      if (oldsong.path == song.path) {
+        bool needsUpdate = false;
+        if ((oldsong.artist == null || oldsong.artist == 'Unknown' || oldsong.artist == 'Unknown Artist') &&
+            song.artist != null && song.artist != 'Unknown' && song.artist != 'Unknown Artist') {
+          oldsong.artist = song.artist;
+          needsUpdate = true;
+        }
+        if ((oldsong.album == null || oldsong.album == 'Unknown' || oldsong.album == 'Unknown Album') &&
+            song.album != null && song.album != 'Unknown' && song.album != 'Unknown Album') {
+          oldsong.album = song.album;
+          needsUpdate = true;
+        }
+        if ((oldsong.title == null || oldsong.title == 'Unknown') &&
+            song.title != null && song.title != 'Unknown') {
+          oldsong.title = song.title;
+          needsUpdate = true;
+        }
+        if ((oldsong.Image == null || oldsong.Image!.isEmpty) &&
+            song.Image != null && song.Image!.isNotEmpty) {
+          oldsong.Image = song.Image;
+          needsUpdate = true;
+        }
+        if (needsUpdate) {
+          oldsong.save();
+          notifyListeners();
+        }
+        return;
       }
-    songBox!.add(song); // Save to Hive
-    Songlist = songBox!.values.toList();
+    }
+    songBox.add(song); // Save to Hive
+    Songlist = songBox.values.toList();
     print("new song is added..");// Update list
     notifyListeners();
   }

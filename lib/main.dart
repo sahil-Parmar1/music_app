@@ -137,11 +137,13 @@ class _musicAppState extends State<musicApp> {
     if(songProvider.Songlist.isEmpty)
     {
       print("song list is empty");
-      fetchSongslist(context);
+      await fetchSongslist(context);
     }
     else
     {
-      print("${songProvider.Songlist}");
+      print("${songProvider.Songlist.length} songs cached");
+      await loadAlbum(context);
+      await loadArtist(context);
     }
 
   }
@@ -277,32 +279,50 @@ Future<Song> fetchMP3Metadata(String filePath) async {
 
   if (!await file.exists()) {
     print("File not found: $filePath");
-    Song song=Song(path: '');
-    return song;
+    return Song(path: '');
   }
 
-  List<int> mp3Bytes = await file.readAsBytes();
-  MP3Instance mp3Instance = MP3Instance(mp3Bytes);
+  try {
+    List<int> mp3Bytes = await file.readAsBytes();
+    MP3Instance mp3Instance = MP3Instance(mp3Bytes);
 
-  if (mp3Instance.parseTagsSync()) {
-    Map<String, dynamic>? metadata=mp3Instance.getMetaTags();
-    //print("metadata==>${mp3Instance.getMetaTags()}");
-    if(metadata!.containsKey("APIC"))
-    {
-      String? base64Image = metadata["APIC"]["base64"];
+    if (mp3Instance.parseTagsSync()) {
+      Map<String, dynamic>? metadata = mp3Instance.getMetaTags();
+      if (metadata != null) {
+        String? base64Image;
+        if (metadata.containsKey("APIC") && metadata["APIC"] != null) {
+          base64Image = metadata["APIC"]["base64"];
+        }
 
-      //print("base64Image==>${base64Image}");
+        String rawTitle = metadata["Title"]?.toString().trim() ?? '';
+        String title = rawTitle.isNotEmpty ? rawTitle : pathforextract.basename(filePath);
+        String rawArtist = metadata["Artist"]?.toString().trim() ?? '';
+        String artist = rawArtist.isNotEmpty ? rawArtist : "Unknown Artist";
+        String rawAlbum = metadata["Album"]?.toString().trim() ?? '';
+        String album = rawAlbum.isNotEmpty ? rawAlbum : "Unknown Album";
 
-      Song song=Song(path: filePath,title: metadata?["Title"] ?? "Unknown",artist:metadata?["Artist"] ?? "Unknown", Image: metadata?["APIC"]?["base64"],publisher: metadata?["Publisher"] ?? "Unknown",genre: metadata?["Genre"] ?? "Unknown",album: metadata?["Album"] ?? "Unknown");
-
-      return song;
+        return Song(
+          path: filePath,
+          title: title,
+          artist: artist,
+          album: album,
+          Image: base64Image,
+          publisher: metadata["Publisher"]?.toString() ?? "Unknown",
+          genre: metadata["Genre"]?.toString() ?? "Unknown",
+        );
+      }
+    } else {
+      print("No metadata found in this file.");
     }
-  } else {
-    print("No metadata found in this file.");
-    Song song=Song(path: filePath);
-    return song;
+  } catch (e) {
+    print("Error parsing metadata for $filePath: $e");
   }
-  Song song=Song(path: filePath);
-  return song;
+
+  return Song(
+    path: filePath,
+    title: pathforextract.basename(filePath),
+    artist: "Unknown Artist",
+    album: "Unknown Album",
+  );
 }
 

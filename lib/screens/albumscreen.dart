@@ -42,39 +42,55 @@ import 'package:provider/provider.dart';
 Future<void> loadAlbum(context)async
 {
   Box<Song> songbox=Hive.box<Song>("songs");
-   List<String> album=await getfromShared_preference(key: "album")??[];
-   List<Song> songlist=songbox.values.toList();
+  List<String> existingAlbums = await getfromShared_preference(key: "album");
+  Set<String> albumSet = existingAlbums.toSet();
+  List<Song> songlist=songbox.values.toList();
 
-   for(var song in songlist)
-     {
-       if(!album.contains(song.album))
-         {
-           album.add(song.album??"Unknown");
-         }
-       bool isBoxOpen = Hive.isBoxOpen(song.album??"Unknown");
-       Box<Song> box;
-       if (isBoxOpen) {
-         box=Hive.box<Song>(song.album??"Unknown");
-       } else {
-         box=await Hive.openBox(song.album??"Unknown");
-       }
-       Song newsong=Song(
-         path: song.path,
-       album: song.album,
-         title: song.title,
-         Image: song.Image,
-         publisher: song.publisher,
-         genre: song.genre,
-         artist: song.artist,
-       );
-       List<Song> oldsong=box.values.toList();
-       for(var check in oldsong)
-         if(newsong.path == check.path)
-           return;
-       box.add(newsong);
-     }
+  for(var song in songlist)
+  {
+    String rawAlbum = (song.album != null && song.album!.trim().isNotEmpty)
+        ? song.album!.trim()
+        : "Unknown Album";
+    String albumName = rawAlbum.replaceAll(RegExp(r'[\\/:*?"<>|]'), ' ').trim();
+    if (albumName.isEmpty) albumName = "Unknown Album";
 
-   savetoShared_preference(string: album, key: "album"); //save to local storage
+    albumSet.add(albumName);
+
+    bool isBoxOpen = Hive.isBoxOpen(albumName);
+    Box<Song> box;
+    try {
+      if (isBoxOpen) {
+        box = Hive.box<Song>(albumName);
+      } else {
+        box = await Hive.openBox<Song>(albumName);
+      }
+    } catch (e) {
+      print("Error opening Hive box for album $albumName: $e");
+      continue;
+    }
+
+    bool alreadyExists = false;
+    for (var check in box.values) {
+      if (song.path == check.path) {
+        alreadyExists = true;
+        break;
+      }
+    }
+    if (!alreadyExists) {
+      Song newsong = Song(
+        path: song.path,
+        album: albumName,
+        title: song.title,
+        Image: song.Image,
+        publisher: song.publisher,
+        genre: song.genre,
+        artist: song.artist,
+      );
+      await box.add(newsong);
+    }
+  }
+
+  savetoShared_preference(string: albumSet.toList(), key: "album"); //save to local storage
 }
 
 class Album extends StatefulWidget {
@@ -89,6 +105,16 @@ class _AlbumState extends State<Album> with AutomaticKeepAliveClientMixin {
   bool get wantKeepAlive => true;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Provider.of<playlistprovider>(context, listen: false).loadplaylists();
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     super.build(context);
     final albumprovier=Provider.of<playlistprovider>(context);
@@ -96,9 +122,17 @@ class _AlbumState extends State<Album> with AutomaticKeepAliveClientMixin {
     return MediaQuery.removePadding(
       context: context,
       removeTop: true,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.only(top: 4, bottom: 90),
-        child: albumprovier.playlists.isNotEmpty
+      child: RefreshIndicator(
+        onRefresh: () async {
+          await loadAlbum(context);
+          if (mounted) {
+            Provider.of<playlistprovider>(context, listen: false).loadplaylists();
+          }
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(top: 4, bottom: 90),
+          child: albumprovier.playlists.isNotEmpty
             ? Wrap(
                 spacing: 1000.0,
                 runSpacing: 1.0,
@@ -217,6 +251,7 @@ class _AlbumState extends State<Album> with AutomaticKeepAliveClientMixin {
               }).toList(),
             )
           : NoArtistsScreen(artist: false),
+        ),
       ),
     );
   }
